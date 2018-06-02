@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "target": "es5",
+        "lib": ["es5", "es6", "dom"]
+    },
+    "files": [
+        "./tests/test_msg2api.ts"
+    ],
+    "outDir" : "dist/",
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}
+
