@@ -56,6 +56,7 @@ export class Schema {
             else {
                 if (this.isBasicType(schemaType)) {
                     this['type'] = this.standardBasicType(schemaType);
+                    this['format'] = schemaType;
                 }
                 else {
                     this['$ref'] = '#/components/schemas/'+schemaType;
@@ -71,6 +72,7 @@ export class Schema {
     private standardBasicType(type: string) {
         switch(type) {
             case "int":
+                return "integer";
             case "long":
                 return "integer";
             case "float":

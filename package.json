@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "msggen2openapi": "src/msggen2openapi.js"
+  },
   "author": {
     "name": "yonggang.zhang",
     "email": "yonggang.zhang@17zuoye.com"
@@ -15,7 +18,8 @@
     "fs": "0.0.1-security",
     "js-yaml": "^3.11.0",
     "nunjucks": "^3.1.3",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^10.1.2",

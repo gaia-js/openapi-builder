@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import OpenAPI, {Server, Request, Parameter, Response, Schema, SchemaProperty, SchemaObject} from "./openapi";
 import * as fs from "fs";
 import * as xml2js from 'xml2js';
@@ -34,7 +36,12 @@ function msggen2Openapi(msggenPath: string, openapiPath: string, host?): boolean
         }
     }
 
-    console.log(openAPI.dump());
+    if (openapiPath == '-') {
+        console.log(openAPI.dump());
+    }
+    else {
+        fs.writeFileSync(openapiPath, openAPI.dump());
+    }
 
     return true;
 }
@@ -124,6 +131,7 @@ function createRequest(openAPI: OpenAPI, item: any, defaultMethod: string): Requ
 
 function addLoginAPI(openAPI: OpenAPI) {
     let request = new Request("登陆", "GET");
+    request.addTag('dev');
     request.addParameter(new Parameter('user_code', 'string'));
     request.addParameter(new Parameter('passwd', 'string'));
     request['security'] = [];
@@ -187,7 +195,9 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
                             let response = new Response();
                             let schema = new Schema(item.$.name+"Response");
                             response.content.addSchema(schema);
-                            response.description = item.$.comment;
+                            if (item.$.comment) {
+                                response.description = item.$.comment;
+                            }
                             request.addResponse(response);
 
                             addComponent(openAPI, item, item.$.name+"Response")
@@ -213,5 +223,34 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
 
     return true;
 }
+
+var argv = require('yargs')
+            .option('_', {
+                nargs: 2
+            })
+            .options({
+                'i': {
+                    alias : 'input',
+                    demand: true,
+                    describe: 'msggen messages directory path',
+                    type: 'string'
+                },
+                'o': {
+                    alias : 'output',
+                    demand: true,
+                    describe: 'output yaml file path',
+                    type: 'string'
+                },
+                'n': {
+                    alias : 'name',
+                    demand: true,
+                    describe: 'application name',
+                    type: 'string',
+                    array: true
+                }
+            })
+            .argv;
+
+process.exit(msggen2Openapi(argv.input, argv.output, argv.name)?0:1);
 
 export default msggen2Openapi;
