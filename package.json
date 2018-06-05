@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "install": "tsc && npm link",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
