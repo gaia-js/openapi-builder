@@ -56,7 +56,9 @@ export class Schema {
             else {
                 if (this.isBasicType(schemaType)) {
                     this['type'] = this.standardBasicType(schemaType);
-                    this['format'] = schemaType;
+                    if (["array", "object", "any"].indexOf(schemaType) < 0) {
+                        this['format'] = schemaType;
+                    }
                 }
                 else {
                     this['$ref'] = '#/components/schemas/'+schemaType;
@@ -184,15 +186,15 @@ export class SchemaProperty extends Schema {
     }
 }
 
-export class SchemaObject {
+export class SchemaObject extends Schema {
     public type: string;
     public properties: object;
 
     constructor() {
-        this.type = "object";
+        super('object');
     }
 
-    public addProperty(name: string, schemaProperty: SchemaProperty) {
+    public addProperty(name: string, schemaProperty: Schema) {
         if (!this.properties) {
             this.properties = {};
         }
