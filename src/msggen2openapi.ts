@@ -1,4 +1,3 @@
-//#!/usr/bin/env node
 
 import OpenAPI, {Server, Request, Parameter, Response, Schema, SchemaProperty, SchemaObject} from "./openapi";
 import * as fs from "fs";

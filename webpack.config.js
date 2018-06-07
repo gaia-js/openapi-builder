@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const webpack = require('webpack');
 
 const webpackConfig = {
     entry: {
@@ -18,6 +19,13 @@ const webpackConfig = {
     mode: "production",
 
     target: "node",
+
+    node: {
+        console: true,
+        global: true,
+        process: true,
+        Buffer: true,
+    },
 
     resolveLoader: {
         modules: [path.join(__dirname, "node_modules")],
@@ -39,7 +47,15 @@ const webpackConfig = {
                 exclude: /node_modules/
             },
         ]
-    }
+    },
+
+    plugins: [
+        new webpack.BannerPlugin({
+            banner: '#!/usr/bin/env node', 
+            raw: true,
+            entryOnly: true
+        })
+    ]
 };
 
 module.exports = webpackConfig;
