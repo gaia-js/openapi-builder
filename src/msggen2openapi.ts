@@ -65,8 +65,8 @@ function readMsgFromFile(msggenPath: string, openAPI: OpenAPI): boolean {
     return convert2OpenAPI(msggen, openAPI, path.basename(msggenPath, path.extname(msggenPath)));
 }
 
-function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
-    let schemaResponse = new SchemaObject();
+function createSchemaObject(item: any) : SchemaObject {
+    let schemaObject = new SchemaObject();
 
     if (item.field) {
         if (item.field instanceof Array) {
@@ -76,7 +76,7 @@ function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
                 let schema = new SchemaProperty(field.$.type);
                 schema.description = field.$.comment;
                 
-                schemaResponse.addProperty(field.$.name, schema);
+                schemaObject.addProperty(field.$.name, schema);
 
                 //let schema = new Schema(item.$.name+"Response");
                 
@@ -89,7 +89,7 @@ function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
             let schema = new SchemaProperty(item.field.$.type);
             schema.description = item.field.$.comment;
             
-            schemaResponse.addProperty(item.field.$.name, schema);
+            schemaObject.addProperty(item.field.$.name, schema);
 
             //let schema = new Schema(item.$.name+"Response");
             //let schema = new SchemaProperty(item.$.name+"Response");
@@ -100,7 +100,11 @@ function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
         }
     }
 
-    openAPI.components.addSchema(componentName, schemaResponse);
+    return schemaObject;
+}
+
+function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
+    openAPI.components.addSchema(componentName, createSchemaObject(item));
 }
 
 function createRequest(openAPI: OpenAPI, item: any, defaultMethod: string): Request {
@@ -135,16 +139,17 @@ function addLoginAPI(openAPI: OpenAPI) {
     request.addParameter(new Parameter('user_code', 'string'));
     request.addParameter(new Parameter('passwd', 'string'));
     request['security'] = [];
-    let response = new Response();
-    response.content.addSchema(new Schema("DevLogin"+"Response"))
-    request.addResponse(response)
 
     let schemaResponse = new SchemaObject();
-    let dataSchema = new SchemaProperty('object');
+    let dataSchema = new SchemaObject();
+    dataSchema.addProperty('session_key', new SchemaProperty("string"));
     dataSchema['additionalProperties'] = true;
     schemaResponse.addProperty("success", new SchemaProperty("boolean"));
     schemaResponse.addProperty("data", dataSchema);
-    openAPI.components.addSchema("DevLogin"+"Response", schemaResponse);
+
+    let response = new Response();
+    response.content.addSchema(schemaResponse)
+    request.addResponse(response)
 
     openAPI.addApi('/dev/login', request);
 }
@@ -193,14 +198,11 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
                     for (let item of msggen.config.response.extra.item) {
                         if (item.$.name == request.name) {
                             let response = new Response();
-                            let schema = new Schema(item.$.name+"Response");
-                            response.content.addSchema(schema);
+                            response.content.addSchema(createSchemaObject(item));
                             if (item.$.comment) {
                                 response.description = item.$.comment;
                             }
                             request.addResponse(response);
-
-                            addComponent(openAPI, item, item.$.name+"Response")
 
                             break;
                         }
@@ -209,12 +211,9 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
             }
 
             if (!request.responses) {
-                let schema = new Schema(item.$.name+"Response");
                 let response = new Response();
-                response.content.addSchema(schema);
+                response.content.addSchema(new SchemaObject());
                 request.addResponse(response);
-
-                addComponent(openAPI, {}, item.$.name+"Response")
             }
 
             openAPI.addApi(item.$.url, request);
