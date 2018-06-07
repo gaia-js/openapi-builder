@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "publish": "npm version patch && npm publish",
+    "dist": "npm version patch && npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
