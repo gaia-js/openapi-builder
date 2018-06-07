@@ -3,12 +3,10 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "es5",
+        "rootDir": "src/",
         "lib": ["es5", "es6", "dom"],
-        "outDir" : "dist/"
+        "outDir" : "build/"
     },
-    "files": [
-        "./tests/test_msg2api.ts"
-    ],
     "include": [
         "src/**/*"
     ],
