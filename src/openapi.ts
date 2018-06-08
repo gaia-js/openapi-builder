@@ -107,15 +107,21 @@ export class Parameter {
     public set schemaType(schemaType: string) {
         this.schema = new Schema(schemaType);
     }
+
+    public setDefault(value) {
+        this['example'] = value;
+    }
 }
 
 export class Request {
-    public method:string;
+    public method: string;
+    public operationId: string;
     
     public constructor(name: string, method: string) {
         this.name = name;
         this.method = method;
         this.tags = [];
+        this.operationId = name;
 
         for (let propertyKey of ['name', 'method', '_tags']) {
             let descriptor = Object.getOwnPropertyDescriptor(this, propertyKey) || {};
