@@ -16,7 +16,7 @@ const webpackConfig = {
         libraryTarget: "global",
     },
 
-    mode: "production",
+    mode: "development",
 
     target: "node",
 
@@ -48,6 +48,8 @@ const webpackConfig = {
             },
         ]
     },
+
+    devtool: 'source-map',
 
     plugins: [
         new webpack.BannerPlugin({

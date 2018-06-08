@@ -106,6 +106,18 @@ function addComponent(openAPI: OpenAPI, item: any, componentName: string) {
     openAPI.components.addSchema(componentName, createSchemaObject(item));
 }
 
+function createParameter(field: any) : Parameter {
+    let parameter = new Parameter();
+    parameter.name = field.$.name;
+    parameter.description = field.$.comment;
+    parameter.schemaType = field.$.type;
+    if (field.$.default) {
+        parameter.setDefault(field.$.default);
+    }
+
+    return parameter;
+}
+
 function createRequest(openAPI: OpenAPI, item: any, defaultMethod: string): Request {
     let request = new Request(item.$.name, item.$.method?item.$.method:defaultMethod);
     request.summary = item.$.comment;
@@ -113,23 +125,57 @@ function createRequest(openAPI: OpenAPI, item: any, defaultMethod: string): Requ
     if (item.field) {
         if (item.field instanceof Array) {
             for (let field of item.field) {
-                let parameter = new Parameter();
-                parameter.name = field.$.name;
-                parameter.description = field.$.comment;
-                parameter.schemaType = field.$.type;
-                request.addParameter(parameter);
+                request.addParameter(createParameter(field));
             }
         }
         else {
-            let parameter = new Parameter();
-            parameter.name = item.field.$.name;
-            parameter.description = item.field.$.comment;
-            parameter.schemaType = item.field.$.type;
-            request.addParameter(parameter);
+            request.addParameter(createParameter(item.field));
         }
     }
 
     return request;
+}
+
+function createResponse(item: any) : Response {
+    let response = new Response();
+    response.content.addSchema(createSchemaObject(item));
+    if (item.$.comment) {
+        response.description = item.$.comment;
+    }
+
+    return response;
+}
+
+function findResponse(msggen, requestName: string) {
+    if (msggen.config.response && msggen.config.response.extra && msggen.config.response.extra.item) {
+        if (msggen.config.response.extra.item instanceof Array) {
+            for (let item of msggen.config.response.extra.item) {
+                if (item.$.name == requestName) {
+                    return createResponse(item);
+
+                    break;
+                }
+            }
+        }
+        else if (msggen.config.response.extra.item.$.name == requestName) {
+            return createResponse(msggen.config.response.extra.item);
+        }
+    }
+
+    let response = new Response();
+    response.content.addSchema(new SchemaObject());
+    return response;
+}
+
+function createRequestWithItem(openAPI: OpenAPI, item: any, msggen: any, defaultMethod: string, tag?: string) {
+    let request = createRequest(openAPI, item, defaultMethod);
+    if (tag) {
+        request.addTag(tag);
+    }
+
+    request.addResponse(findResponse(msggen, request.name));
+
+    openAPI.addApi(item.$.url, request);
 }
 
 function addLoginAPI(openAPI: OpenAPI) {
@@ -186,36 +232,13 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
     addLoginAPI(openAPI);
 
     if (msggen.config && msggen.config.message && msggen.config.message.extra && msggen.config.message.extra.item) {
-        for (let item of msggen.config.message.extra.item) {
-            let request = createRequest(openAPI, item, defaultMethod);
-            if (tag) {
-                request.addTag(tag);
+        if (msggen.config.message.extra.item instanceof Array) {
+            for (let item of msggen.config.message.extra.item) {
+                createRequestWithItem(openAPI, item, msggen, defaultMethod, tag);
             }
-
-            if (msggen.config.response && msggen.config.response.extra && msggen.config.response.extra.item) {
-                if (msggen.config.response.extra.item instanceof Array) {
-                    for (let item of msggen.config.response.extra.item) {
-                        if (item.$.name == request.name) {
-                            let response = new Response();
-                            response.content.addSchema(createSchemaObject(item));
-                            if (item.$.comment) {
-                                response.description = item.$.comment;
-                            }
-                            request.addResponse(response);
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!request.responses) {
-                let response = new Response();
-                response.content.addSchema(new SchemaObject());
-                request.addResponse(response);
-            }
-
-            openAPI.addApi(item.$.url, request);
+        }
+        else {
+            createRequestWithItem(openAPI, msggen.config.message.extra.item, msggen, defaultMethod, tag);
         }
     }
 
