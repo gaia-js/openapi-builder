@@ -219,6 +219,11 @@ class Components {
                 in: "query",
                 name: "session_key"
             },
+            "cookieVoxauth": {
+                type: "apiKey",
+                in: "cookie",
+                name: "voxauth"
+            },
             "cookieAuth": {
                 type: "apiKey",
                 in: "cookie",
