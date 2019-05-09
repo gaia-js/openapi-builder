@@ -264,6 +264,7 @@ class OpenAPI {
             components: this.components,
             security: [
                 {SessionKeyAuth: []},
+                {cookieVoxauth: []},
                 {cookieAuth: []}
             ],
             servers: this.servers,
