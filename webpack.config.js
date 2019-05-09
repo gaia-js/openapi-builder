@@ -8,6 +8,7 @@ const webpack = require('webpack');
 const webpackConfig = {
     entry: {
         index: "./src/msggen2openapi.ts",
+        ConfluenceUpdator: "./src/ConfluenceUpdator.js",
     },
 
     output: {
@@ -45,7 +46,7 @@ const webpackConfig = {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
                 exclude: /node_modules/
-            },
+            }
         ]
     },
 
