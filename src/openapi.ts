@@ -116,9 +116,11 @@ export class Parameter {
 export class Request {
     public method: string;
     public operationId: string;
+    public ['x-codegen-request-body-name']: string
     
     public constructor(name: string, method: string) {
         this.name = name;
+        this['x-codegen-request-body-name'] = name;
         this.method = method;
         this.tags = [];
         this.operationId = name;
