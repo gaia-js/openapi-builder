@@ -1,7 +1,21 @@
 import * as jsYaml from "js-yaml"
-import { ENAMETOOLONG } from "constants";
+import * as is from 'is-type-of';
 
-export class Server {
+// import { ENAMETOOLONG } from "constants";
+
+interface Loadable {
+    load(source: any): void;
+}
+
+function loadArray<T extends Loadable>(target: any, source: any[], clz: {new(): T} | (() => T)) {
+    source.forEach(item => {
+        const targetItem = is.class(clz)?new (clz as any)(): (clz as any)();
+        targetItem.load(item);
+        target.push(targetItem);
+    });
+}
+
+export class Server implements Loadable{
     public url: string;
     public description: string;
 
@@ -9,15 +23,20 @@ export class Server {
         this.url = url;
         this.description = description;
     }
+
+    load(source: any) {
+        this.url = source.url;
+        this.description = source.description;
+    }
 }
 
 class Paths {
-    private _path;
+    private _path: string;
     public get path(): string {
         return this._path;
     }
 
-    private _requests;
+    private _requests: Request[];
     public get requests(): Request[] {
         return this._requests;
     }
@@ -34,18 +53,26 @@ class Paths {
     }
 }
 
-export class Schema {
+export class Schema implements Loadable {
+    type: string;
+    description: string;
+    additionalProperties?: Schema|boolean;
+    $ref?: string;
+    items?: Schema;
+    format?: string;
+    ['x-object-map']?: {[name: string]: Schema};
+
     constructor(schemaType: string) {
-        this.setType(schemaType);
+        this.setType(schemaType || '');
     }
 
     private setType(schemaType: string) {
-        if (schemaType.endsWith('[]')) {
+        if (schemaType && schemaType.endsWith('[]')) {
             this['type'] = 'array';
 
             this["items"] = new Schema(schemaType.slice(0, schemaType.length-2))
         }
-        else {
+        else if (schemaType) {
             let matched = schemaType.match(/\{(\w+):(\w+)\}/)
             if (matched) {
                 this['type'] = 'object';
@@ -64,11 +91,13 @@ export class Schema {
                     this['$ref'] = '#/components/schemas/'+schemaType;
                 }
             }
+        } else {
+            console.error('invalid schema type');
         }
     }
 
     private isBasicType(type: string) {
-        return ["string", "number", "int", "integer", "long", "float", "boolean", "array", "object", "any"].indexOf(type) >= 0;
+        return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "any"].indexOf(type) >= 0;
     }
 
     private standardBasicType(type: string) {
@@ -85,11 +114,18 @@ export class Schema {
                 return type;
         }
     }
+
+    load(source: any) {
+        ['properties', 'description', 'additionalProperties', '$ref', 'items', 'format'].forEach(name => {
+            typeof source[name] !== 'undefined' && (this[name] = source[name]);
+        });
+    }
 }
 
-export class Parameter {
+export class Parameter implements Loadable {
     public in: string;
     public name: string;
+    // @ts-ignore
     private schema: Schema;
     public required: boolean;
     public description: string;
@@ -111,13 +147,17 @@ export class Parameter {
     public setDefault(value) {
         this['example'] = value;
     }
+
+    load(source: any) {
+
+    }
 }
 
-export class Request {
+export class Request implements Loadable {
     public method: string;
     public operationId: string;
     public ['x-codegen-request-body-name']: string
-    
+
     public constructor(name: string, method: string) {
         this.name = name;
         this['x-codegen-request-body-name'] = name;
@@ -157,8 +197,8 @@ export class Request {
         this.parameters.push(parameter);
     }
 
-    public responses;
-    
+    public responses: {[statusCode: string]: Response};
+
     public addResponse(response: Response, statusCode: string="200") {
         if (!this.responses) {
             this.responses = {};
@@ -166,9 +206,19 @@ export class Request {
 
         this.responses[statusCode] = response;
     }
+
+    load(source: any) {
+        source.parameters && loadArray<Parameter>(this.parameters || (this.parameters = []), source.parameters, Parameter);
+        this.tags = source.tags;
+        Object.keys(source.responses).forEach(statusCode => {
+            const response = new Response();
+            response.load(source.responses[statusCode]);
+            this.addResponse(response, statusCode);
+        });
+    }
 }
 
-export class Response {
+export class Response implements Loadable {
     constructor() {
          this.content = new ResponseContent();
          this.description = "";
@@ -176,13 +226,28 @@ export class Response {
 
     public description: string;
     public content: ResponseContent
+
+    load(source: any) {
+        this.content.load(source.content);
+        this.description = source.description;
+    }
 }
 
-export class ResponseContent {
-    public addSchema(schame: Schema, mimeType: string='application/json') {
+export class ResponseContent implements Loadable {
+    // {[mimeType: string]: Schema};
+
+    public addSchema(scheme: Schema, mimeType: string='application/json') {
         this[mimeType] = {
-            schema: schame
+            schema: scheme
         };
+    }
+
+    load(source: any) {
+        Object.keys(source).forEach(mimeType => {
+            const schema = new Schema(source[mimeType].schema.type);
+            schema.load(source[mimeType].schema);
+            this.addSchema(schema, mimeType);
+        })
     }
 }
 
@@ -196,7 +261,7 @@ export class SchemaProperty extends Schema {
 
 export class SchemaObject extends Schema {
     public type: string;
-    public properties: object;
+    public properties: {[name: string]: Schema};
 
     constructor() {
         super('object');
@@ -209,10 +274,22 @@ export class SchemaObject extends Schema {
 
         this.properties[name] = schemaProperty;
     }
+
+    load(source: any) {
+        this.type = source.type;
+
+        Object.keys(source.properties).forEach(name => {
+            const schema = new Schema(source.properties[name].type);
+            schema.load(source.properties[name]);
+            this.addProperty(name, schema);
+        });
+
+        super.load(source);
+    }
 }
 
 class Components {
-    public schemas;
+    public schemas: {[name: string]: SchemaObject};
 
     constructor() {
         this['securitySchemes'] = {
@@ -241,12 +318,20 @@ class Components {
 
         this.schemas[name] = schemaObject;
     }
+
+    public load(source: any) {
+        Object.keys(source.schemas).forEach(name => {
+            const schema = new SchemaObject();
+            schema.load(source.schemas[name]);
+            this.addSchema(name, schema);
+        });
+    }
 }
 
 class OpenAPI {
-    public title;
-    public description;
-    public version;
+    public title: string;
+    public description: string;
+    public version: string;
     public components: Components;
 
     public constructor() {
@@ -259,9 +344,9 @@ class OpenAPI {
         return jsYaml.dump({
             openapi: '3.0.0',
             info: {
-                title: '',
-                description: '',
-                version: ''
+                title: this.title,
+                description: this.description,
+                version: this.version
             },
             components: this.components,
             security: [
@@ -271,6 +356,23 @@ class OpenAPI {
             ],
             servers: this.servers,
             paths: this.paths
+        })
+    }
+
+    public load(source: any) {
+        ['title', 'description', 'version'].forEach(name => {
+            this[name] = source[name];
+        });
+
+        source.components && this.components.load(source.components);
+        loadArray<Server>(this._servers, source.servers, () => {return new Server('');});
+        Object.keys(source.paths).forEach(name => {
+            const sourcePath = source.paths[name];
+            Object.keys(sourcePath).forEach(method => {
+                const request = new Request(sourcePath[method]['x-codegen-request-body-name'] || sourcePath[method]['operationId'], method);
+                request.load(sourcePath[method])
+                this.paths.addRequest(name, request);
+            });
         })
     }
 

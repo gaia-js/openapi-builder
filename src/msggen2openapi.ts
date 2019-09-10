@@ -1,25 +1,25 @@
 
-import OpenAPI, {Server, Request, Parameter, Response, Schema, SchemaProperty, SchemaObject} from "./openapi";
+import OpenAPI, {Server, Request, Parameter, Response, SchemaProperty, SchemaObject} from "./openapi";
 import * as fs from "fs";
 import * as xml2js from 'xml2js';
 import * as path from "path";
 
 function msggen2Openapi(msggenPath: string, openapiPath: string, host?): boolean {
-    let msggen = null;
+    // let msggen = null;
 
     let openAPI = new OpenAPI();
 
     if (host instanceof Array) {
         for (let item of host) {
-            openAPI.addServer(new Server("https://"+item+".test.17zuoye.net", ""));
-            openAPI.addServer(new Server("https://"+item+".staging.17zuoye.net", ""));
-            openAPI.addServer(new Server("https://"+item+".17zuoye.com", ""));
+            openAPI.addServer(new Server("https://"+item+".test.17zuoye.net", "test server"));
+            openAPI.addServer(new Server("https://"+item+".staging.17zuoye.net", "staging server"));
+            openAPI.addServer(new Server("https://"+item+".17zuoye.com", "production server"));
         }
     }
     else {
-        openAPI.addServer(new Server("https://"+host+".test.17zuoye.net", ""));
-        openAPI.addServer(new Server("https://"+host+".staging.17zuoye.net", ""));
-        openAPI.addServer(new Server("https://"+host+".17zuoye.com", ""));
+        openAPI.addServer(new Server("https://"+host+".test.17zuoye.net", "test server"));
+        openAPI.addServer(new Server("https://"+host+".staging.17zuoye.net", "staging server"));
+        openAPI.addServer(new Server("https://"+host+".17zuoye.com", "production server"));
     }
 
     if (fs.existsSync(msggenPath)) {
@@ -74,11 +74,11 @@ function createSchemaObject(item: any) : SchemaObject {
 
                 let schema = new SchemaProperty(field.$.type);
                 schema.description = field.$.comment;
-                
+
                 schemaObject.addProperty(field.$.name, schema);
 
                 //let schema = new Schema(item.$.name+"Response");
-                
+
                 // let response = new Response();
                 // response.content.addSchema(schema);
                 // request.addResponse(response);
@@ -87,7 +87,7 @@ function createSchemaObject(item: any) : SchemaObject {
         else {
             let schema = new SchemaProperty(item.field.$.type);
             schema.description = item.field.$.comment;
-            
+
             schemaObject.addProperty(item.field.$.name, schema);
 
             //let schema = new Schema(item.$.name+"Response");
@@ -200,9 +200,9 @@ function addLoginAPI(openAPI: OpenAPI) {
 }
 
 function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
-    let defaultProtocol = 'http';
+    // let defaultProtocol = 'http';
     let defaultMethod = 'GET';
-    let defaultContentType = null;
+    // let defaultContentType = null;
 
     if (msggen.config && msggen.config.type && msggen.config.type.extra && msggen.config.type.extra.item) {
         if (msggen.config.type.extra.item instanceof Array) {
@@ -221,11 +221,11 @@ function convert2OpenAPI(msggen: any, openAPI: OpenAPI, tag?: string): boolean {
         }
 
         if (msggen.config.message.default.$.protocol) {
-            defaultProtocol = msggen.config.message.default.$.protocol;
+            // defaultProtocol = msggen.config.message.default.$.protocol;
         }
 
         if (msggen.config.message.default.$.contentType) {
-            defaultContentType = msggen.config.message.default.$.contentType;
+            // defaultContentType = msggen.config.message.default.$.contentType;
         }
     }
 
