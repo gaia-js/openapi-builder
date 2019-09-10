@@ -5,8 +5,8 @@ import OpenAPI, { Request } from "../../openapi";
 
 export default async function(openApi: OpenAPI, outputPath: string): Promise<boolean> {
   const requestPath = path.resolve(outputPath, 'request');
-  if (!await fs.exists(requestPath)) {
-    await fs.mkdir(requestPath)
+  if (!fs.existsSync(requestPath)) {
+    fs.mkdirSync(requestPath);
   }
 
   const requestTemplate = nunjucks.compile(fs.readFileSync(path.resolve('templates', 'request.njk')));

@@ -344,9 +344,9 @@ class OpenAPI {
         return jsYaml.dump({
             openapi: '3.0.0',
             info: {
-                title: this.title,
-                description: this.description,
-                version: this.version
+                title: this.title || '',
+                description: this.description || '',
+                version: this.version || ''
             },
             components: this.components,
             security: [
