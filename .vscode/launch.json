@@ -21,7 +21,7 @@
         "-i",
         "./tests/omniverse.yaml",
         "-o",
-        "./tests/omniverse/"
+        "./tests/"
       ],
       "outFiles": [
         "${workspaceFolder}/**/*.js"

@@ -5,66 +5,52 @@
 
 import BasePropertiesObject from '17zy_egg-gaiajs/app/object/BasePropertiesObject';
 
-$a-{for: name in getCustomNames(fields)}
-import $a-{name} from '../type/$a-{name}';
-$a-{end for}
-export default class $a-{name} extends BasePropertiesObject {
-    $a-{for: field in fields}
+{% for refType in utils.refTypesForSchemaObject(schema) -%}
+import {{refType}} from '../types/{{refType}}';
+{% endfor %}
+export default class {{name}} extends BasePropertiesObject {
+    {% for name, field in schema.properties -%}
     /**
-     * $a-{field.comment}
+     * {{field.description}}
      *
-     * @type {$a-{field.type.to}}
-     * @memberof $a-{name}
+     * @type {{utils.typeFor(field)}}
+     * @memberof {{name}}
      */
-    $a-{if: field.type.class == "basic"}
-    public $a-{field.name}: $a-{field.type.to};
-    $a-{end if}
-    $a-{if: field.type.class == "custom"}
-    public $a-{field.name}: $a-{field.type.to};
-    $a-{end if}
-    $a-{if: field.type.class == "array"}
-    public $a-{field.name}: $a-{field.type.to} = [];
-    $a-{end if}
-    $a-{if: field.type.class == "map"}
-    public $a-{field.name}: $a-{field.type.to} = {};
-    $a-{end if}
+    public {{name}}: {{utils.typeFor(field)}};
 
-    $a-{end for}
+    {% endfor -%}
+
     constructor(data: any) {
         super(data);
 
         if (data == null) {
             return;
         }
-        $a-{for: field in fields}
-        $a-{if: field.type.class == "basic"}
-        this.$a-{field.name} = data.$a-{field.name};
-        $a-{end if}
-        $a-{if: field.type.class == "custom"}
-        this.$a-{field.name} = data.$a-{field.name} && <$a-{field.type.to}>new $a-{field.type.to}().parse(data.$a-{field.name});
-        $a-{end if}
-        $a-{if: field.type.class == "array"}
-        this.$a-{field.name} = NetUtil.parseArray(data.$a-{field.name}$a-{if: field.type.customName != null}, $a-{field.type.customName}$a-{end if});
-        $a-{end if}
-        $a-{if: field.type.class == "map"}
-        this.$a-{field.name} = NetUtil.parseMap(data.$a-{field.name}$a-{if: field.type.customName != null}, $a-{field.type.customName}$a-{end if});
-        $a-{end if}
-        $a-{end for}
+
+        {%for name, field in schema.properties -%}
+        this.{{name}} = {% if field.type === 'array' -%}
+            data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item=>new {{utils.typeFor(field.items)}}(item)){% endif %}
+            {%- elif field.$ref -%}
+            new {{utils.typeFor(field)}}(data.{{name}})
+            {%- else -%}
+            data.{{name}}
+            {%- endif -%};
+        {% endfor -%}
 
         return data;
     }
 
-    public pack(): any {
+    public dump(): any {
         return {
-            $a-{for: field in fields}
-            $a-{field.name}: $a-{}
-            $a-{if: field.type.class == "basic"}this.$a-{field.name}$a-{end if}
-            $a-{if: field.type.class == "custom"}this.$a-{field.name} && this.$a-{field.name}.pack()$a-{end if}
-            $a-{if: field.type.class == "array"}NetUtil.packArray(this.$a-{field.name})$a-{end if}
-            $a-{if: field.type.class == "map"}NetUtil.packMap(this.$a-{field.name})$a-{end if}
-            $a-{if: $index < fields.length},
-            $a-{end if}
-            $a-{end for}
+            {%- for name, field in schema.properties %}
+            {{name}}: {% if field.type === 'array' and field.items.$ref -%}
+                    this.{{name}}.map(item=>item.dump())
+                    {%- elif field.$ref -%}
+                    this.{{name}}.dump()
+                    {%- else -%}
+                    this.{{name}}
+                    {%- endif %},
+            {%- endfor %}
         };
     }
 }

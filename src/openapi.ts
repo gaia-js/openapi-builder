@@ -57,6 +57,7 @@ export class Schema implements Loadable {
     type: string;
     description: string;
     additionalProperties?: Schema|boolean;
+    properties?: {[name: string]: Schema};
     $ref?: string;
     items?: Schema;
     format?: string;
@@ -115,9 +116,25 @@ export class Schema implements Loadable {
         }
     }
 
+    public addProperty(name: string, schemaProperty: Schema) {
+        if (!this.properties) {
+            this.properties = {};
+        }
+
+        this.properties[name] = schemaProperty;
+    }
+
     load(source: any) {
-        ['properties', 'description', 'additionalProperties', '$ref', 'items', 'format'].forEach(name => {
+        this.setType(source.type);
+
+        ['description', 'additionalProperties', '$ref', 'items', 'format'].forEach(name => {
             typeof source[name] !== 'undefined' && (this[name] = source[name]);
+        });
+
+        source.properties && Object.keys(source.properties).forEach(name => {
+            const schema = new Schema(source.properties[name].type);
+            schema.load(source.properties[name]);
+            this.addProperty(name, schema);
         });
     }
 }
@@ -125,8 +142,7 @@ export class Schema implements Loadable {
 export class Parameter implements Loadable {
     public in: string;
     public name: string;
-    // @ts-ignore
-    private schema: Schema;
+    public schema: Schema;
     public required: boolean;
     public description: string;
 
@@ -149,7 +165,12 @@ export class Parameter implements Loadable {
     }
 
     load(source: any) {
+        ['name', 'in', 'required', 'description', 'example'].forEach(name => {
+            this[name] = source[name];
+        })
 
+        this.schema = new Schema(source.schema.type);
+        this.schema.load(source.schema);
     }
 }
 
@@ -208,6 +229,10 @@ export class Request implements Loadable {
     }
 
     load(source: any) {
+        ['summary', 'description'].forEach(name => {
+            this[name] = source[name];
+        });
+
         source.parameters && loadArray<Parameter>(this.parameters || (this.parameters = []), source.parameters, Parameter);
         this.tags = source.tags;
         Object.keys(source.responses).forEach(statusCode => {
@@ -234,7 +259,7 @@ export class Response implements Loadable {
 }
 
 export class ResponseContent implements Loadable {
-    // {[mimeType: string]: Schema};
+    [mimeType: string]: Schema | any;
 
     public addSchema(scheme: Schema, mimeType: string='application/json') {
         this[mimeType] = {
@@ -260,31 +285,8 @@ export class SchemaProperty extends Schema {
 }
 
 export class SchemaObject extends Schema {
-    public type: string;
-    public properties: {[name: string]: Schema};
-
     constructor() {
         super('object');
-    }
-
-    public addProperty(name: string, schemaProperty: Schema) {
-        if (!this.properties) {
-            this.properties = {};
-        }
-
-        this.properties[name] = schemaProperty;
-    }
-
-    load(source: any) {
-        this.type = source.type;
-
-        Object.keys(source.properties).forEach(name => {
-            const schema = new Schema(source.properties[name].type);
-            schema.load(source.properties[name]);
-            this.addProperty(name, schema);
-        });
-
-        super.load(source);
     }
 }
 
