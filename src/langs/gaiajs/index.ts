@@ -145,8 +145,14 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
           fs.writeFileSync(path.resolve(requestPath, `${request.name}.ts`), requestTemplate().render({request, utils}));
 
           Object.keys(request.responses).forEach(statusCode => {
-            Object.keys(request.responses[statusCode]).forEach(mimeType => {
-              const schema = request.responses[statusCode].content[mimeType].schema;
+            const responseContent = request.responses[statusCode].content;
+
+            Object.keys(responseContent).forEach(mimeType => {
+              if (!responseContent[mimeType] || !responseContent[mimeType].schema) {
+                return;
+              }
+
+              const schema = responseContent[mimeType].schema;
               fs.writeFileSync(path.resolve(responsePath, `${request.name}.ts`), responseTemplate().render({name: request.name, response: request.responses[statusCode], utils, schema}));
             });
           });
