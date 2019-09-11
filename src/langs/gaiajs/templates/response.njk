@@ -7,24 +7,30 @@ import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
 
 import { Context } from 'egg';
 
-$a-{for: name in getCustomNames(fields)}
-import $a-{name} from '../type/$a-{name}';
-$a-{end for}
+{% for refType in utils.refTypesForSchemaObject(schema) %}
+import {{refType}} from '../types/{{refType}}';
+{% endfor %}
 
 /**
- * $a-{comment}
+ * {{response.description}}
  */
-export default class $a-{name}Response extends GaiaResponse {
-	$a-{for: field in fields}
-  /* $a-{field.comment} */
-  $a-{field.name}: $a-{field.type.to};
-	$a-{end for}
+export default class {{name}}Response extends GaiaResponse {
+  {% for field in schema.properties %}
+  // {{field.description}}
+  {{field.name}}{% if required === false %}?{% endif %}: {{utils.typeFor(field.schema)}};
+  {% endfor %}
 
   output(ctx: Context) {
     return ctx.body = {
-$a-{for: field in fields}
-      $a-{field.name}: this.$a-{field.name},
-$a-{end for}
+      {%- for name, field in schema.properties %}
+      {{name}}: {% if field.type === 'array' and field.items.$ref -%}
+        this.{{name}}.map(item=>item.dump())
+        {%- elif field.$ref -%}
+        this.{{name}}.dump()
+        {%- else -%}
+        this.{{name}}
+        {%- endif %},
+      {%- endfor %}
     };
   }
 }
