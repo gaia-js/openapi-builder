@@ -15,9 +15,9 @@ import {{refType}} from '../types/{{refType}}';
  * {{response.description}}
  */
 export default class {{name}}Response extends GaiaResponse {
-  {% for field in schema.properties %}
+  {% for name, field in schema.properties %}
   // {{field.description}}
-  {{field.name}}{% if required === false %}?{% endif %}: {{utils.typeFor(field.schema)}};
+  {{name}}: {{utils.typeFor(field)}};
   {% endfor %}
 
   output(ctx: Context) {
