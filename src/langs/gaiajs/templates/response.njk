@@ -21,7 +21,7 @@ export default class {{name}}Response extends GaiaResponse {
   {% endfor %}
 
   output(ctx: Context) {
-    return ctx.body = {
+    return super.output({
       {%- for name, field in schema.properties %}
       {{name}}: {% if field.type === 'array' and field.items.$ref -%}
         this.{{name}}.map(item=>item.dump())
@@ -31,6 +31,6 @@ export default class {{name}}Response extends GaiaResponse {
         this.{{name}}
         {%- endif %},
       {%- endfor %}
-    };
+    });
   }
 }
