@@ -20,7 +20,7 @@ export default class {{name}}Response extends GaiaResponse {
   {{name}}: {{utils.typeFor(field)}};
   {% endfor %}
 
-  output(ctx: Context) {
+  dump(): any {
     return super.output({
       {%- for name, field in schema.properties %}
       {{name}}: {% if field.type === 'array' and field.items.$ref -%}
