@@ -5,8 +5,6 @@
 
 import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
 
-import { Context } from 'egg';
-
 {% for refType in utils.refTypesForSchemaObject(schema) %}
 import {{refType}} from '../types/{{refType}}';
 {% endfor %}
@@ -21,7 +19,7 @@ export default class {{name}}Response extends GaiaResponse {
   {% endfor %}
 
   dump(): any {
-    return super.output({
+    return {
       {%- for name, field in schema.properties %}
       {{name}}: {% if field.type === 'array' and field.items.$ref -%}
         this.{{name}}.map(item=>item.dump())
@@ -31,6 +29,6 @@ export default class {{name}}Response extends GaiaResponse {
         this.{{name}}
         {%- endif %},
       {%- endfor %}
-    });
+    };
   }
 }
