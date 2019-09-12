@@ -64,7 +64,7 @@ export class Schema implements Loadable {
     ['x-object-map']?: {[name: string]: Schema};
 
     constructor(schemaType: string) {
-        this.setType(schemaType || '');
+        this.setType(schemaType || 'object');
     }
 
     private setType(schemaType: string) {
@@ -132,6 +132,14 @@ export class Schema implements Loadable {
         });
 
         source.properties && Object.keys(source.properties).forEach(name => {
+            if (!source.properties[name].type) {
+                if (source.properties[name].$ref) {
+                    source.properties[name].type = source.properties[name].$ref.split('/').pop();
+                } else {
+                    console.log('invalid schema type while load schema: ', name, source.properties[name]);
+                }
+            }
+
             const schema = new Schema(source.properties[name].type);
             schema.load(source.properties[name]);
             this.addProperty(name, schema);
@@ -168,6 +176,10 @@ export class Parameter implements Loadable {
         ['name', 'in', 'required', 'description', 'example'].forEach(name => {
             this[name] = source[name];
         })
+
+        if (!source.schema.type) {
+            console.log('invalid schema type while load parameter: ', source);
+        }
 
         this.schema = new Schema(source.schema.type);
         this.schema.load(source.schema);
@@ -228,6 +240,11 @@ export class Request implements Loadable {
         this.responses[statusCode] = response;
     }
 
+    defaultResponse(): Response | null {
+        const defaultResponseContent = this.responses[Object.keys(this.responses)[0]].content
+        return defaultResponseContent[Object.keys(defaultResponseContent)[0]]
+    }
+
     load(source: any) {
         ['summary', 'description'].forEach(name => {
             this[name] = source[name];
@@ -269,6 +286,10 @@ export class ResponseContent implements Loadable {
 
     load(source: any) {
         Object.keys(source).forEach(mimeType => {
+            if (!source[mimeType].schema.type) {
+                console.log('invalid schema type while load response content: ', source);
+            }
+
             const schema = new Schema(source[mimeType].schema.type);
             schema.load(source[mimeType].schema);
             this.addSchema(schema, mimeType);

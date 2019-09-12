@@ -17,7 +17,7 @@
         // "-e",
         "${workspaceFolder}/src/gencode.ts",
         "-l",
-        "gaiajs",
+        "wiki", "gaiajs",
         "-i",
         "./tests/omniverse.yaml",
         "-o",

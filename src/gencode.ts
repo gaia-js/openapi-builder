@@ -1,11 +1,12 @@
 import OpenAPI from "./openapi";
 import * as fs from "fs";
-//import * as path from "path";
+import * as path from "path";
 import * as jsYaml from "js-yaml";
-import generator from './langs/gaiajs/index';
 
 async function gencodeForLang(lang: string, openApi: OpenAPI, outputPath: string): Promise<boolean> {
-    //const generator = require(path.resolve(__dirname, `./langs/${lang}/index`));
+    let generator = require(path.resolve(__dirname, `./langs/${lang}/index`));
+    generator.default && (generator = generator.default);
+
     // const generator = await import (`./langs/${lang}/index`);
     //const generator = require('./langs/gaiajs/index');
 
@@ -62,6 +63,7 @@ var argv = require('yargs')
             .argv;
 
 gencode(argv.lang, argv.input, argv.output).then(code => {
+    console.info('done.');
     process.exit(code);
 });
 
