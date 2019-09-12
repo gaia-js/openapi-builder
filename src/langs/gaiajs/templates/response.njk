@@ -4,11 +4,9 @@
  */
 
 import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
-
 {% for refType in utils.refTypesForSchemaObject(schema) %}
 import {{refType}} from '../types/{{refType}}';
-{% endfor %}
-
+{%- endfor %}
 /**
  * {{response.description}}
  */
