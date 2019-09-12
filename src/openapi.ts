@@ -242,7 +242,7 @@ export class Request implements Loadable {
 
     defaultResponse(): Response | null {
         const defaultResponseContent = this.responses[Object.keys(this.responses)[0]].content
-        return defaultResponseContent[Object.keys(defaultResponseContent)[0]]
+        return defaultResponseContent[Object.keys(defaultResponseContent)[0]].schema
     }
 
     load(source: any) {

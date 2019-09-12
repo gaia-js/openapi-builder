@@ -35,10 +35,10 @@
 {%- set index = 0 %}
 {% for path, methods in openApi.paths %}
 {% for method, request in methods %}
-<h3>{{index}}、{{request.description}}：{{request.name}}</h3>
+<h3>{{index}}、{{request.summary}}：{{request.name}}</h3>
 {% set index = index + 1 %}
 <p>1）请求路径：{{method}} {{path}}</p>
-<p>2）请求参数：{% if not request.parameters or request.parameters.length == 0 %}无{% endif %}</p>
+<p>2）请求参数：{% if not request.parameters or request.parameters.length === 0 %}无{% endif %}</p>
 {% if request.parameters and request.parameters.length > 0 %}
 <table class="confluenceTable">
   <tbody>
@@ -65,7 +65,7 @@
         </div>
       </th>
     </tr>
-	{% for parameter in request.parameter %}
+	{% for parameter in request.parameters %}
     <tr>
       <td class="confluenceTd" colspan="1">{{parameter.name}}</td>
       <td class="confluenceTd" colspan="1">{{utils.typeFor(parameter.schema)}}</td>
@@ -76,9 +76,9 @@
 </table>
 {% endif %}
 {% set response = request.defaultResponse() %}
-<p>3）返回类型：<span style="color: #000000;">{{response.name}}</span></p>
-<p>4）返回参数：$a-{if: msg.response.fields.length <= 0}无$a-{end if}</p>
-$a-{if: msg.response.fields.length > 0}
+<p>3）返回类型：<span style="color: #000000;">{{ utils.typeFor(response) }}</span></p>
+<p>4）返回参数：{% if not response.properties or response.properties.length === 0 %}无{% endif %}</p>
+{% if response.properties and response.properties.length > 0 %}
 <table class="confluenceTable">
   <tbody>
     <tr>
@@ -86,12 +86,12 @@ $a-{if: msg.response.fields.length > 0}
       <th class="confluenceTh">类型</th>
       <th class="confluenceTh">说明</th>
 	</tr>
-	$a-{for: field in msg.response.fields}
+	{% for name, schema in response.properties %}
     <tr>
       <td class="confluenceTd">
-        <pre>$a-{field.name}</pre></td>
+        <pre>{{ name }}</pre></td>
       <td class="confluenceTd">
-		$a-{(function(){
+		{# (function(){
 			return getTypeStr(field);
 
 			function getTypeStr(field)
@@ -130,12 +130,14 @@ $a-{if: msg.response.fields.length > 0}
 					return "<pre><span>" + type.to + "</span></pre>" + res;
 				}
 			}
-		})()}
+		})() #}
+      <pre><span>{{ utils.typeFor(schema) }}</span></pre>
       </td>
-      <td class="confluenceTd">$a-{field.comment}</td>
+      <td class="confluenceTd">{{schema.description}}</td>
 	</tr>
-	$a-{end for}
+	{% endfor %}
   </tbody>
 </table>
+{% endif %}
 {% endfor %}
 {% endfor %}
