@@ -179,7 +179,8 @@ function createRequestWithItem(openAPI: OpenAPI, item: any, msggen: any, default
 }
 
 function addLoginAPI(openAPI: OpenAPI) {
-    let request = new Request("登陆", "GET");
+    let request = new Request("DevLogin", "GET");
+    request.description = '登陆';
     request.addTag('dev');
     request.addParameter(new Parameter('user_code', 'string'));
     request.addParameter(new Parameter('passwd', 'string'));
