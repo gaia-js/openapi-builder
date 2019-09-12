@@ -1,4 +1,4 @@
-import OpenAPI, { Request, Response, Parameter, SchemaObject, Schema } from "./openapi";
+import OpenAPI, { Request, Response, Parameter, SchemaObject, Schema, Server } from "./openapi";
 import * as fs from "fs";
 import * as path from "path";
 import * as jsYaml from "js-yaml";
@@ -10,7 +10,9 @@ namespace gapi {
     properties: {[name: string]: Schema}
   }
 
-  type Response = Schema;
+  interface Response extends Schema {
+    mimetype: string
+  }
 
   export interface Path {
     name: string
@@ -25,11 +27,21 @@ namespace gapi {
     title: string,
     description: string
     version: string
-    ['app-name']: string
+    ['app-name']: string|string[]
     ['common-response']: Schema
     paths: Path[]
     types: {[name: string]: Schema}
   }
+}
+
+function createSchema(gapiSchema: gapi.Schema): Schema {
+  const schema = new Schema(gapiSchema.type)
+  schema.description = gapiSchema.comment || ''
+  gapiSchema.properties && Object.keys(gapiSchema.properties).forEach(name => {
+    schema.addProperty(name, createSchema(gapiSchema.properties[name]))
+  });
+
+  return schema
 }
 
 export default function readGapi(gapiFilePath: string): OpenAPI {
@@ -40,13 +52,37 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
   ['title', 'description', 'version'].forEach(name => {
     openApi[name] = doc[name];
   });
+  
+  // server
+  const host = doc["app-name"]
+  if (host instanceof Array) {
+    for (let item of host) {
+      openApi.addServer(new Server("https://"+item+".test.17zuoye.net", "test server"));
+      openApi.addServer(new Server("https://"+item+".staging.17zuoye.net", "staging server"));
+      openApi.addServer(new Server("https://"+item+".17zuoye.com", "production server"));
+    }
+  }
+  else {
+    openApi.addServer(new Server("https://"+host+".test.17zuoye.net", "test server"));
+    openApi.addServer(new Server("https://"+host+".staging.17zuoye.net", "staging server"));
+    openApi.addServer(new Server("https://"+host+".17zuoye.com", "production server"));
+  }
+
+  // paths
   doc.paths.forEach(path => {
-    const request = new Request(path.name, path.method)
-    request.description = path.response.comment
+    const request = new Request(path.name, path.method || 'get')
+    request.description = path.comment
+
     const response = new Response();
+    const schema = createSchema(path.response)
+    doc["common-response"] && Object.keys(doc["common-response"].properties).forEach(name => {
+      schema.addProperty(name, createSchema(doc["common-response"].properties[name]))
+    })
+    
+    response.content.addSchema(schema, path.response.mimetype || 'application/json')
     request.addResponse(response)
 
-    Object.keys(path.parameters).forEach(name => {
+    path.parameters && Object.keys(path.parameters).forEach(name => {
       const parameter = new Parameter(name, path.parameters[name].type)
       parameter.description = path.parameters[name].comment
       request.addParameter(parameter)
@@ -56,16 +92,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
   })
 
   Object.keys(doc.types).forEach(name => {
-    const schema = new SchemaObject()
-
-    const properties = doc.types[name].properties
-    Object.keys(properties).forEach(name => {
-      const propertySchema = new Schema(properties[name].type)
-      propertySchema.description = properties[name].comment
-      schema.addProperty(name, propertySchema)
-    })
-
-    openApi.addComponent(name, schema)
+    openApi.addComponent(name, createSchema(doc.types[name]))
   })
 
   return openApi
