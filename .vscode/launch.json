@@ -17,9 +17,9 @@
         // "-e",
         "${workspaceFolder}/src/gencode.ts",
         "-l",
-        "wiki", "gaiajs",
-        "-i",
-        "./tests/omniverse.yaml",
+        "wiki", "gaiajs", "openapi",
+        // "-i", "./tests/omniverse.yaml",
+        "-i", "./tests/math-fighting.gapi.yaml", "-t", "gapi",
         "-o",
         "./tests/"
       ],

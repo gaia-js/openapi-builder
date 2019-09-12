@@ -2,6 +2,7 @@ import OpenAPI from "./openapi";
 import * as fs from "fs";
 import * as path from "path";
 import * as jsYaml from "js-yaml";
+import readGapi from './gapi2openapi';
 
 async function gencodeForLang(lang: string, openApi: OpenAPI, outputPath: string): Promise<boolean> {
     let generator = require(path.resolve(__dirname, `./langs/${lang}/index`));
@@ -22,9 +23,7 @@ function getOpenApi(openapiPath: string): OpenAPI {
     return openApi;
 }
 
-async function gencode(langs: string[], openapiPath: string, outputPath: string): Promise<number> {
-    const openApi = getOpenApi(openapiPath);
-
+async function gencode(langs: string[], openApi: OpenAPI, outputPath: string): Promise<number> {
     langs.forEach(async lang => {
         try {
             await gencodeForLang(lang, openApi, outputPath);
@@ -50,7 +49,7 @@ var argv = require('yargs')
                 'i': {
                     alias : 'input',
                     demand: true,
-                    describe: 'input openapi yaml file path',
+                    describe: 'input openapi or gaiajs api yaml file path',
                     type: 'string'
                 },
                 'o': {
@@ -59,10 +58,19 @@ var argv = require('yargs')
                     describe: 'output source code path',
                     type: 'string'
                 },
+                't': {
+                    alias : 'type',
+                    demand: false,
+                    describe: 'input type',
+                    type: 'string'
+                },
             })
             .argv;
 
-gencode(argv.lang, argv.input, argv.output).then(code => {
+
+const openApi: OpenAPI = (argv.type === 'gapi'?readGapi:getOpenApi)(argv.input);
+
+gencode(argv.lang, openApi, argv.output).then(code => {
     console.info('done.');
     process.exit(code);
 });
