@@ -152,6 +152,11 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
                 return;
               }
 
+              if (mimeType && mimeType !== 'application/json') {
+                // 现在的模版是json response的模版
+                return;
+              }
+
               const schema = responseContent[mimeType].schema;
               fs.writeFileSync(path.resolve(responsePath, `${request.name}.ts`), responseTemplate().render({name: request.name, response: request.responses[statusCode], utils, schema}));
             });
