@@ -77,8 +77,8 @@
 {% endif %}
 {% set response = request.defaultResponse() %}
 <p>3）返回类型：<span style="color: #000000;">{{ utils.typeFor(response) }}</span></p>
-<p>4）返回参数：{% if not response.properties or response.properties.length === 0 %}无{% endif %}</p>
-{% if response.properties and response.properties.length > 0 %}
+<p>4）返回参数：{% if not response.properties %}无{% endif %}</p>
+{% if response.properties %}
 <table class="confluenceTable">
   <tbody>
     <tr>
