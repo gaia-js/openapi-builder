@@ -17,11 +17,10 @@
         // "-e",
         "${workspaceFolder}/src/gencode.ts",
         "-l",
-        "wiki", "gaiajs", "openapi",
+        "openapi", "gaiajs", "wiki", 
         // "-i", "./tests/omniverse.yaml",
         "-i", "./tests/math-fighting.gapi.yaml", "-t", "gapi",
-        "-o",
-        "./tests/"
+        "-o", "./tests/"
       ],
       "outFiles": [
         "${workspaceFolder}/**/*.js"
