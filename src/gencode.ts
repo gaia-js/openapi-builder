@@ -24,13 +24,11 @@ function getOpenApi(openapiPath: string): OpenAPI {
 }
 
 async function gencode(langs: string[], openApi: OpenAPI, outputPath: string): Promise<number> {
-    langs.forEach(async lang => {
-        try {
-            await gencodeForLang(lang, openApi, outputPath);
-        } catch (err) {
+    await Promise.all(langs.map(lang => {
+        return gencodeForLang(lang, openApi, outputPath).catch(err => {
             console.error(`gencode for lang ${lang} failed`, err);
-        }
-    });
+        });
+    }));
 
     return 0;
 }

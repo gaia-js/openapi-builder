@@ -74,6 +74,13 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
     request.description = path.comment
 
     const response = new Response();
+
+    path.parameters && Object.keys(path.parameters).forEach(name => {
+      const parameter = new Parameter(name, path.parameters[name].type)
+      parameter.description = path.parameters[name].comment
+      request.addParameter(parameter)
+    })
+
     const schema = createSchema(path.response)
     doc["common-response"] && Object.keys(doc["common-response"].properties).forEach(name => {
       schema.addProperty(name, createSchema(doc["common-response"].properties[name]))
@@ -81,12 +88,6 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
     
     response.content.addSchema(schema, path.response.mimetype || 'application/json')
     request.addResponse(response)
-
-    path.parameters && Object.keys(path.parameters).forEach(name => {
-      const parameter = new Parameter(name, path.parameters[name].type)
-      parameter.description = path.parameters[name].comment
-      request.addParameter(parameter)
-    })
 
     openApi.paths.addRequest(path.url, request)
   })
