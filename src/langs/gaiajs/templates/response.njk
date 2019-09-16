@@ -8,19 +8,18 @@ import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
 import {{refType}} from '../types/{{refType}}';
 {%- endfor %}
 /**
- * {{response.description}}
+ *{% if response.description %} {{response.description}}{% endif %}
  */
 export default class {{name}}Response extends GaiaResponse {
-  {% for name, field in schema.properties %}
-  // {{field.description}}
+{% for name, field in schema.properties -%}
+{% if field.description %}  // {{field.description}}{% endif %}
   {{name}}: {{utils.typeFor(field)}};
-  {% endfor %}
-
+{% endfor %}
   dump(): any {
     return {
       {%- for name, field in schema.properties %}
       {{name}}: {% if field.type === 'array' and field.items.$ref -%}
-        this.{{name}}.map(item=>item.dump())
+        this.{{name}}.map(item => item.dump())
         {%- elif field.$ref -%}
         this.{{name}}.dump()
         {%- else -%}
