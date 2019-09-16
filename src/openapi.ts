@@ -68,10 +68,12 @@ export class Schema implements Loadable {
     }
 
     private setType(schemaType: string) {
-        if (schemaType && schemaType.endsWith('[]')) {
+        if (schemaType && (schemaType === 'array' || schemaType.endsWith('[]'))) {
             this['type'] = 'array';
 
-            this["items"] = new Schema(schemaType.slice(0, schemaType.length-2))
+            if (schemaType.endsWith('[]')) {
+                this["items"] = new Schema(schemaType.slice(0, schemaType.length-2))
+            }
         }
         else if (schemaType) {
             let matched = schemaType.match(/\{(\w+):(\w+)\}/)
@@ -117,6 +119,11 @@ export class Schema implements Loadable {
     }
 
     public addProperty(name: string, schemaProperty: Schema) {
+        if (this.type === 'array') {
+            this.items.addProperty(name, schemaProperty);
+            return;
+        }
+
         if (!this.properties) {
             this.properties = {};
         }
