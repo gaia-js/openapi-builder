@@ -5,7 +5,7 @@
         "target": "es6",
         //"rootDir": "src/",
         "lib": ["es5", "es6", "dom"],
-        "outDir" : "build/",
+        "outDir" : "dist/",
         "allowJs": true,
         "module": "commonjs"
     },
