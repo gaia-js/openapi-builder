@@ -7,50 +7,49 @@ import BasePropertiesObject from '17zy_egg-gaiajs/app/object/BasePropertiesObjec
 
 {% for refType in utils.refTypesForSchemaObject(schema) -%}
 import {{refType}} from '../types/{{refType}}';
-{% endfor %}
+{% endfor -%}
 export default class {{name}} extends BasePropertiesObject {
-    {% for name, field in schema.properties -%}
-    /**
-     * {{field.description}}
-     *
-     * @type {{utils.typeFor(field)}}
-     * @memberof {{name}}
-     */
-    public {{name}}: {{utils.typeFor(field)}};
+{% for name, field in schema.properties %}
+  /**
+   *{% if field.description %} {{field.description}}{% endif %}
+   *
+   * @type {{utils.typeFor(field)}}
+   * @memberof {{name}}
+   */
+  public {{name}}: {{utils.typeFor(field)}};
+{%- endfor %}
 
+  constructor(data: any) {
+    super(data);
+
+    if (data == null) {
+      return;
+    }
+
+    {%for name, field in schema.properties -%}
+    this.{{name}} = {% if field.type === 'array' -%}
+      data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item=>new {{utils.typeFor(field.items)}}(item)){% endif %}
+      {%- elif field.$ref -%}
+      new {{utils.typeFor(field)}}(data.{{name}})
+      {%- else -%}
+      data.{{name}}
+      {%- endif -%};
     {% endfor -%}
 
-    constructor(data: any) {
-        super(data);
+    return data;
+  }
 
-        if (data == null) {
-            return;
-        }
-
-        {%for name, field in schema.properties -%}
-        this.{{name}} = {% if field.type === 'array' -%}
-            data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item=>new {{utils.typeFor(field.items)}}(item)){% endif %}
-            {%- elif field.$ref -%}
-            new {{utils.typeFor(field)}}(data.{{name}})
-            {%- else -%}
-            data.{{name}}
-            {%- endif -%};
-        {% endfor -%}
-
-        return data;
-    }
-
-    public dump(): any {
-        return {
-            {%- for name, field in schema.properties %}
-            {{name}}: {% if field.type === 'array' and field.items.$ref -%}
-                    this.{{name}}.map(item=>item.dump())
-                    {%- elif field.$ref -%}
-                    this.{{name}}.dump()
-                    {%- else -%}
-                    this.{{name}}
-                    {%- endif %},
-            {%- endfor %}
-        };
-    }
+  public dump(): any {
+    return {
+      {%- for name, field in schema.properties %}
+      {{name}}: {% if field.type === 'array' and field.items.$ref -%}
+        this.{{name}}.map(item=>item.dump())
+        {%- elif field.$ref -%}
+        this.{{name}}.dump()
+        {%- else -%}
+        this.{{name}}
+        {%- endif %},
+      {%- endfor %}
+    };
+  }
 }

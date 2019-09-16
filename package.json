@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js; tsc; cp -Rf src/langs dist/",
     "dist": "npm version patch && npm publish",
-    "pub": "cp -Rf src/langs dist/; npm run dist",
+    "pub": "npm run dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {

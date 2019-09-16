@@ -4,22 +4,19 @@
  */
 
 import GaiaRequest from '17zy_egg-gaiajs/app/lib/request';
-
-{% for refType in utils.refTypes(request) %}
+{% for refType in utils.refTypes(request) -%}
 import {{refType}} from '../types/{{refType}}';
 {% endfor %}
-
 /**
  * path: {{url}}
- * {{request.summary}}
- * {{request.description}}
+ *{%- if request.summary %} {{request.summary}}{% endif %}
+ *{%- if request.description %} {{request.description}}{% endif %}
  */
 export default class {{request.name}}Request extends GaiaRequest {
-  {% for field in request.parameters %}
+{% for field in request.parameters %}
   // {{field.description}}
   {{field.name}}{% if required === false %}?{% endif %}: {{utils.typeFor(field.schema)}};
-  {% endfor %}
-
+{% endfor %}
   constructor(params: any) {
     super(params);
 
@@ -30,6 +27,6 @@ export default class {{request.name}}Request extends GaiaRequest {
       {%- else -%}
       this.ctx.params.{{ field.name }}
       {%- endif %};
-    {% endfor %}
+  {% endfor -%}
   }
 }

@@ -1,3 +1,5 @@
+#!env node
+
 import OpenAPI from "./openapi";
 import * as fs from "fs";
 import * as path from "path";
