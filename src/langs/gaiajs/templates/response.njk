@@ -15,6 +15,24 @@ export default class {{name}}Response extends GaiaResponse {
 {% if field.description %}  // {{field.description}}{% endif %}
   {{name}}: {{utils.typeFor(field)}};
 {% endfor %}
+  constructor(data: any) {
+    super(data);
+
+    if (data == null) {
+      return;
+    }
+
+    {%for name, field in schema.properties -%}
+    this.{{name}} = {% if field.type === 'array' -%}
+      data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item => new {{utils.typeFor(field.items)}}(item)){% endif %}
+      {%- elif field.$ref -%}
+      new {{utils.typeFor(field)}}(data.{{name}})
+      {%- else -%}
+      data.{{name}}
+      {%- endif -%};
+  {% endfor -%}
+  }
+
   dump(): any {
     return {
       {%- for name, field in schema.properties %}
