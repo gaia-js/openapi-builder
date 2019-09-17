@@ -3,12 +3,12 @@
  *
  */
 
-import BasePropertiesObject from '17zy_egg-gaiajs/app/object/BasePropertiesObject';
+import Schema from '17zy_egg-gaiajs/app/lib/schema';
 
 {% for refType in utils.refTypesForSchemaObject(schema) -%}
 import {{refType}} from '../types/{{refType}}';
 {% endfor -%}
-export default class {{name}} extends BasePropertiesObject {
+export default class {{name}} extends Schema {
 {% for name, field in schema.properties %}
   /**
    *{% if field.description %} {{field.description}}{% endif %}
@@ -22,32 +22,24 @@ export default class {{name}} extends BasePropertiesObject {
   constructor(data: any) {
     super(data);
 
-    if (data == null) {
-      return;
-    }
-
-    {%for name, field in schema.properties -%}
-    this.{{name}} = {% if field.type === 'array' -%}
-      data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item => new {{utils.typeFor(field.items)}}(item)){% endif %}
-      {%- elif field.$ref -%}
-      new {{utils.typeFor(field)}}(data.{{name}})
-      {%- else -%}
-      data.{{name}}
-      {%- endif -%};
-    {% endfor -%}
   }
 
-  public dump(): any {
-    return {
-      {%- for name, field in schema.properties %}
-      {{name}}: {% if field.type === 'array' and field.items.$ref -%}
-        this.{{name}}.map(item => item.dump())
-        {%- elif field.$ref -%}
-        this.{{name}}.dump()
-        {%- else -%}
-        this.{{name}}
-        {%- endif %},
-      {%- endfor %}
-    };
+  async dump(): Promise<any> {
+    const result: any = {};
+
+    {%- for name, field in schema.properties %}
+    {% if field.type === 'array' and field.items.$ref -%}
+    result.{{name}} = [];
+    for (const item of (await this.getField('{{name}}'))) {
+        result.{{name}}.push(await (new {{utils.typeFor(field.items)}}(item).dump()));
+    }
+    {%- elif field.$ref -%}
+    result.{{name}} = await (new {{utils.typeFor(field)}}(await this.getField('{{name}}')).dump());
+    {%- else -%}
+    result.{{name}} = await this.getField('{{name}}');
+    {%- endif %}
+    {%- endfor %}
+
+    return result;
   }
 }
