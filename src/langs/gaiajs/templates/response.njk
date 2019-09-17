@@ -22,7 +22,7 @@ export default class {{name}}Response extends GaiaResponse {
       return;
     }
 
-    {%for name, field in schema.properties -%}
+    {%- for name, field in schema.properties %}
     this.{{name}} = {% if field.type === 'array' -%}
       data.{{name}} && data.{{name}} instanceof Array && data.{{name}}{% if field.items.$ref %}.map(item => new {{utils.typeFor(field.items)}}(item)){% endif %}
       {%- elif field.$ref -%}
@@ -30,7 +30,7 @@ export default class {{name}}Response extends GaiaResponse {
       {%- else -%}
       data.{{name}}
       {%- endif -%};
-  {% endfor -%}
+    {%- endfor %}
   }
 
   dump(): any {

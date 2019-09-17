@@ -34,9 +34,14 @@ namespace gapi {
   }
 }
 
-function createSchema(gapiSchema: gapi.Schema): Schema {
+function createSchema(gapiSchema: gapi.Schema, commonSchema?: any): Schema {
   const schema = new Schema(gapiSchema.type)
   schema.description = gapiSchema.comment || ''
+
+  commonSchema && Object.keys(commonSchema.properties).forEach(name => {
+    schema.addProperty(name, createSchema(commonSchema.properties[name]))
+  })
+
   gapiSchema.properties && Object.keys(gapiSchema.properties).forEach(name => {
     schema.addProperty(name, createSchema(gapiSchema.properties[name]))
   });
@@ -52,7 +57,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
   ['title', 'description', 'version'].forEach(name => {
     openApi[name] = doc[name];
   });
-  
+
   // server
   const host = doc["app-name"]
   if (host instanceof Array) {
@@ -81,11 +86,8 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
       request.addParameter(parameter)
     })
 
-    const schema = createSchema(path.response)
-    doc["common-response"] && Object.keys(doc["common-response"].properties).forEach(name => {
-      schema.addProperty(name, createSchema(doc["common-response"].properties[name]))
-    })
-    
+    const schema = createSchema(path.response, doc["common-response"])
+
     response.content.addSchema(schema, path.response.mimetype || 'application/json')
     request.addResponse(response)
 
