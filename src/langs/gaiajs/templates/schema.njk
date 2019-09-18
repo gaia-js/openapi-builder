@@ -9,16 +9,16 @@ import Schema from '17zy_egg-gaiajs/app/lib/schema';
 import {{refType}} from '../types/{{refType}}';
 {% endfor -%}
 export default class {{name}} extends Schema {
-{% for name, field in schema.properties %}
+  {% for name, field in schema.properties -%}
   /**
-   *{% if field.description %} {{field.description}}{% endif %}
-   *
+{% if field.description %}   * {{field.description}}
+{% endif %}   *
    * @type {{utils.typeFor(field)}}
    * @memberof {{name}}
    */
-  public {{name}}: {{utils.typeFor(field)}};
-{%- endfor %}
+  {{name}}: {{utils.typeFor(field)}};
 
+  {% endfor -%}
   constructor(data: any) {
     super(data);
 
