@@ -13,20 +13,27 @@ import {{refType}} from '../types/{{refType}}';
  *{%- if request.description %} {{request.description}}{% endif %}
  */
 export default class {{request.name}}Request extends GaiaRequest {
-{% for field in request.parameters %}
-  // {{field.description}}
+  {% for field in request.parameters -%}
+  /**
+{% if field.description %}   * {{field.description}}
+{% endif %}   *
+   * @type {{utils.typeFor(field.schema)}}
+   * @memberof {{name}}
+   */
   {{field.name}}{% if required === false %}?{% endif %}: {{utils.typeFor(field.schema)}};
-{% endfor %}
+
+  {% endfor -%}
+
   constructor(params: any) {
     super(params);
 
-    {% for field in request.parameters -%}
+    {%- for field in request.parameters %}
     this.{{field.name}} = {% if utils.typeFor(field.schema) == "number" -%}
       Number({% if field.in === 'query' %}this.ctx.params{% else %}this.ctx.request.body{% endif %}.{{field.name}})
       {%- elif field.schema.type == "" -%}
       {%- else -%}
       this.ctx.params.{{ field.name }}
       {%- endif %};
-  {% endfor -%}
+    {%- endfor %}
   }
 }
