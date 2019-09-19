@@ -1,4 +1,6 @@
-import OpenAPI, { Request, Response, Schema, SchemaObject } from "../openapi";
+import * as fs from 'fs';
+import * as path from 'path';
+import { Request, Response, Schema, SchemaObject } from "../openapi";
 
 export default {
   refTypes(request: Request) {
@@ -17,12 +19,17 @@ export default {
 
   refTypesForSchemaObject(schema: SchemaObject) {
     const refs = new Set<string>();
-    schema.properties && Object.keys(schema.properties).forEach(name => {
-      if (schema.properties[name].$ref) {
-        refs.add(this.typeFor(schema.properties[name]));
+    if (!schema.properties) {
+      return [];
+    }
+
+    const properties = schema.properties;
+    Object.keys(properties).forEach(name => {
+      if (properties[name].$ref) {
+        refs.add(this.typeFor(properties[name]));
       }
-      else if (schema.properties[name].type === 'array' && schema.properties[name].items && schema.properties[name].items.$ref) {
-        refs.add(this.typeFor(schema.properties[name].items));
+      else if (properties[name].type === 'array' && properties[name].items && (properties[name].items as any).$ref) {
+        refs.add(this.typeFor(properties[name].items as Schema));
       }
     });
 
@@ -70,6 +77,19 @@ export default {
 
       default:
         return schema.type;
+    }
+  }
+}
+
+export function makedirp(dir: string) {
+  const absolute = dir.startsWith(path.sep);
+
+  const paths = dir.split(path.sep)
+  for (let i=0; i<paths.length; i++) {
+    dir = path.resolve(absolute?path.sep:'',...paths.slice(1, i+1))
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
     }
   }
 }

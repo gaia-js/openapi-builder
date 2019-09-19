@@ -120,6 +120,10 @@ export class Schema implements Loadable {
 
     public addProperty(name: string, schemaProperty: Schema) {
         if (this.type === 'array') {
+            if (!this.items) {
+                this.items = new Schema('object');
+            }
+
             this.items.addProperty(name, schemaProperty);
             return;
         }
