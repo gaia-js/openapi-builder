@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 import OpenAPI, { Request } from "../../openapi";
-import utils from '../utils';
+import utils, { makedirp } from '../utils';
 
 let _requestTemplate: nunjucks.Template
 function requestTemplate(): nunjucks.Template {
@@ -41,9 +41,7 @@ function responseTemplate(): nunjucks.Template {
 export default async function(openApi: OpenAPI, outputPath: string): Promise<boolean> {
 
   const typesPath = path.resolve(outputPath, 'types');
-  if (!fs.existsSync(typesPath)) {
-    fs.mkdirSync(typesPath);
-  }
+  makedirp(typesPath);
 
   Object.keys(openApi.components.schemas).forEach(name => {
     try {
@@ -55,14 +53,10 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
   });
 
   const requestPath = path.resolve(outputPath, 'request');
-  if (!fs.existsSync(requestPath)) {
-    fs.mkdirSync(requestPath);
-  }
+  makedirp(requestPath);
 
   const responsePath = path.resolve(outputPath, 'response');
-  if (!fs.existsSync(responsePath)) {
-    fs.mkdirSync(responsePath);
-  }
+  makedirp(responsePath);
 
   Object.keys(openApi.paths).forEach(pathItem => {
     let itemCount = 0;
@@ -99,4 +93,13 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
   });
 
   return true;
+}
+
+export const options = {
+  'o': {
+    alias : 'output',
+    demand: true,
+    describe: 'output source code path',
+    type: 'string'
+  },
 }

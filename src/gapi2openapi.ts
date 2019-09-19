@@ -1,6 +1,5 @@
-import OpenAPI, { Request, Response, Parameter, SchemaObject, Schema, Server } from "./openapi";
+import OpenAPI, { Request, Response, Parameter, Schema, Server } from "./openapi";
 import * as fs from "fs";
-import * as path from "path";
 import * as jsYaml from "js-yaml";
 
 namespace gapi {
@@ -76,7 +75,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
   // paths
   doc.paths.forEach(path => {
     const request = new Request(path.name, path.method || 'get')
-    request.description = path.comment
+    request.description = path.comment || ''
 
     const response = new Response();
 
