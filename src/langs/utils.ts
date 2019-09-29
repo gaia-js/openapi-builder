@@ -75,10 +75,6 @@ export default {
 
         return 'Array';
 
-      case 'object':
-        // return '{' + Object.keys(this.properties).map(name => {return name+':'+this.typeFor(this.properties[name]);}).join(',') + '}';
-        return 'any';
-
       default:
         return schema.type;
     }
