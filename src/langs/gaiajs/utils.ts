@@ -17,14 +17,17 @@ utils.typeFor = function(schema: Schema) {
 
     case 'array':
       if (schema.items) {
-        return `${this.typeFor(schema.items)}[]`;
+        if (schema.items.type === 'object' || schema.items.type === 'array') {
+          return `Array<${this.typeFor(schema.items)}>`;
+        } else {
+          return `${this.typeFor(schema.items)}[]`;
+        }
       };
 
       return 'Array';
 
     case 'object':
       return '{' + Object.keys(schema.properties).map(name => {return name+':'+this.typeFor(schema.properties[name]);}).join(',') + '}';
-      // return 'any';
 
     default:
       return schema.type;
