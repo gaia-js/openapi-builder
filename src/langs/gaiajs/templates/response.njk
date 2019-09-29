@@ -28,21 +28,7 @@ export default class {{name}}Response extends GaiaResponse {
   }
 
   async dump(): Promise<any> {
-    const result: any = {};
-
-    {%- for name, field in schema.properties %}
-    {% if field.type === 'array' and field.items.$ref -%}
-    result.{{name}} = [];
-    for (const item of (await this.getField('{{name}}'))) {
-        result.{{name}}.push(await (new {{utils.typeFor(field.items)}}(item).dump()));
-    }
-    {%- elif field.$ref -%}
-    result.{{name}} = await (new {{utils.typeFor(field)}}(await this.getField('{{name}}')).dump());
-    {%- else -%}
-    result.{{name}} = await this.getField('{{name}}');
-    {%- endif %}
-    {%- endfor %}
-
-    return result;
+    {% from "./macros.njk" import assignValue, value -%}
+    return {{ value('this', schema) }};
   }
 }

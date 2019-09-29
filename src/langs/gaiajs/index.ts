@@ -5,12 +5,20 @@ import * as nunjucks from 'nunjucks';
 import OpenAPI, { Request } from "../../openapi";
 import utils, { makedirp } from '../utils';
 
+const env = new nunjucks.Environment([
+  new nunjucks.FileSystemLoader(path.resolve(__dirname, 'templates'))
+], {autoescape: false});
+
+function njkEnv(): nunjucks.Environment {
+  return env;
+}
+
 let _requestTemplate: nunjucks.Template
 function requestTemplate(): nunjucks.Template {
   if (!_requestTemplate) {
     assert(fs.existsSync(path.resolve(__dirname, 'templates', 'request.njk')));
 
-    _requestTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'request.njk')).toString());
+    _requestTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'request.njk')).toString(), njkEnv());
   }
 
   return _requestTemplate;
@@ -21,7 +29,7 @@ function schemaTemplate(): nunjucks.Template {
   if (!_schemaTemplate) {
     assert(fs.existsSync(path.resolve(__dirname, 'templates', 'request.njk')));
 
-    _schemaTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'schema.njk')).toString());
+    _schemaTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'schema.njk')).toString(), njkEnv());
   }
 
   return _schemaTemplate;
@@ -32,7 +40,7 @@ function responseTemplate(): nunjucks.Template {
   if (!_responseTemplate) {
     assert(fs.existsSync(path.resolve(__dirname, 'templates', 'response.njk')));
 
-    _responseTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'response.njk')).toString());
+    _responseTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'response.njk')).toString(), njkEnv());
   }
 
   return _responseTemplate;

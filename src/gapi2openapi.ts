@@ -7,6 +7,7 @@ namespace gapi {
     type: string
     comment: string
     properties: {[name: string]: Schema}
+    items: Schema
   }
 
   interface Response extends Schema {
@@ -36,6 +37,10 @@ namespace gapi {
 function createSchema(gapiSchema: gapi.Schema, commonSchema?: any): Schema {
   const schema = new Schema(gapiSchema.type)
   schema.description = gapiSchema.comment || ''
+
+  if (gapiSchema.type === 'array') {
+    schema.items = createSchema(gapiSchema.items)
+  }
 
   commonSchema && Object.keys(commonSchema.properties).forEach(name => {
     schema.addProperty(name, createSchema(commonSchema.properties[name]))
