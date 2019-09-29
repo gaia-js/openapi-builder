@@ -3,7 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 import OpenAPI, { Request } from "../../openapi";
-import utils, { makedirp } from '../utils';
+import { makedirp } from '../utils';
+import utils from './utils';
 
 const env = new nunjucks.Environment([
   new nunjucks.FileSystemLoader(path.resolve(__dirname, 'templates'))
