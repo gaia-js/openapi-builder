@@ -219,10 +219,13 @@ export class Request implements Loadable {
     }
 
     private tags: string[];
-    public addTag(tag: string) {
-        if (this.tags.indexOf(tag) == -1) {
-            this.tags.push(tag);
-        }
+    public addTag(tag: string|string[]) {
+        tag = Array.isArray(tag)?tag:[tag]
+        tag.forEach(item => {
+            if (this.tags.indexOf(item) == -1) {
+                this.tags.push(item);
+            }
+        });
     }
 
     public summary: string;
