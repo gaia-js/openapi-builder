@@ -85,7 +85,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
   doc.paths.forEach(path => {
     const request = new Request(path.name, path.method || 'get')
     request.description = path.comment || ''
-    request.addTag(path.tags)
+    path.tags && request.addTag(path.tags)
     request['x-codegen-auth_required'] = path.auth_required || false
     request['x-codegen-route_handler'] = path.route_handler || false
 
