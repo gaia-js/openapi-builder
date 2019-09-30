@@ -47,6 +47,17 @@ function responseTemplate(): nunjucks.Template {
   return _responseTemplate;
 }
 
+let _routeHandlerTemplate: nunjucks.Template
+function routeHandlerTemplate(): nunjucks.Template {
+  if (!_routeHandlerTemplate) {
+    assert(fs.existsSync(path.resolve(__dirname, 'templates', 'handler.njk')));
+
+    _routeHandlerTemplate = nunjucks.compile(fs.readFileSync(path.resolve(__dirname, 'templates', 'handler.njk')).toString(), njkEnv());
+  }
+
+  return _routeHandlerTemplate;
+}
+
 export default async function(openApi: OpenAPI, outputPath: string): Promise<boolean> {
 
   const typesPath = path.resolve(outputPath, 'types');
@@ -66,6 +77,9 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
 
   const responsePath = path.resolve(outputPath, 'response');
   makedirp(responsePath);
+
+  const routerPath = path.resolve(outputPath, 'routers');
+  makedirp(routerPath);
 
   Object.keys(openApi.paths).forEach(pathItem => {
     let itemCount = 0;
@@ -92,6 +106,11 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
               fs.writeFileSync(path.resolve(responsePath, `${itemCount > 0?`${method}_`:''}${request.name}.ts`), responseTemplate().render({name: request.name, response: request.responses[statusCode], utils, schema}));
             });
           });
+
+          if (!fs.existsSync(path.resolve(routerPath, `${pathItem}.ts`))) {
+            makedirp(path.dirname(path.resolve(routerPath, `${pathItem}.ts`)));
+            fs.writeFileSync(path.resolve(routerPath, `${pathItem}.ts`), routeHandlerTemplate().render({name: request.name, utils}));
+          }
         } catch (err) {
           console.error('render failed', err);
         }

@@ -37,11 +37,14 @@ export default class {{request.name}}Request extends GaiaRequest {
       {%- endif %};
     {%- endfor %}
 
+    {%- if request.parameters and request.parameters.length > 0 %}
+
     const rule = {
       {%- for field in request.parameters %}
       {{field.name}}: { type: '{{utils.typeFor(field.schema)}}', required: {{field.required}} },
       {%- endfor %}
     };
     ctx.validate(rule, this);
+    {%- endif %}
   }
 }
