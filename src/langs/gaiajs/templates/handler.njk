@@ -1,5 +1,6 @@
 import { RouteableModule } from '17zy_egg-gaiajs';
 
+import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
 import {{request.name}}Request from '{{netPath}}/request/{{request.name}}';
 import {{request.name}}Response from '{{netPath}}/response/{{request.name}}';
 
@@ -7,7 +8,7 @@ export default {
   path: '{{path}}',
   auth_required: {{request['x-codegen-auth_required'] or false}},
 
-  async {{method}}(this: RouteableModule<{{request.name}}Request>, req: {{request.name}}Request): {{request.name}}Response {
+  async {{method}}(this: RouteableModule<{{request.name}}Request>, req: {{request.name}}Request): Promise<GaiaResponse> {
     const { ctx } = this;
 
     // add your handler codes here

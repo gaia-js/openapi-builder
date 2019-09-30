@@ -202,6 +202,7 @@ export class Request implements Loadable {
     public operationId: string;
     public ['x-codegen-request-body-name']: string
     public ['x-codegen-auth_required']: boolean
+    public ['x-codegen-route_handler']: boolean
 
     public constructor(name: string, method: string) {
         this.name = name;
