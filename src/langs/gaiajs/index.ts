@@ -58,7 +58,7 @@ function routeHandlerTemplate(): nunjucks.Template {
   return _routeHandlerTemplate;
 }
 
-export default async function(openApi: OpenAPI, outputPath: string, options = {force: true}): Promise<boolean> {
+export default async function(openApi: OpenAPI, outputPath: string, options = {force: false}): Promise<boolean> {
   const typesPath = path.resolve(outputPath, 'types');
   makedirp(typesPath);
 
@@ -77,7 +77,7 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
   const responsePath = path.resolve(outputPath, 'response');
   makedirp(responsePath);
 
-  const routerPath = path.resolve(outputPath, 'routers');
+  const routerPath = path.resolve(outputPath, '../routers');
   makedirp(routerPath);
 
   Object.keys(openApi.paths).forEach(pathItem => {
@@ -106,7 +106,7 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
             });
           });
 
-          if (options.force || !fs.existsSync(path.resolve(routerPath, `./${pathItem}.ts`))) {
+          if (request['x-codegen-route_handler'] && (options.force || !fs.existsSync(path.resolve(routerPath, `./${pathItem}.ts`)))) {
             makedirp(path.dirname(path.resolve(routerPath, `./${pathItem}.ts`)));
             const netPath = '../'+path.relative(path.dirname(pathItem), '/net/');
             fs.writeFileSync(path.resolve(routerPath, `./${pathItem}.ts`), routeHandlerTemplate().render({request, path: pathItem, method, netPath, utils}));

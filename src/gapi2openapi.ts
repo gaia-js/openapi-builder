@@ -21,6 +21,7 @@ namespace gapi {
     comment: string
     method: string
     auth_required: boolean
+    route_handler: boolean
     response: Response
     parameters: {[name: string]: Schema}
   }
@@ -84,6 +85,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
     const request = new Request(path.name, path.method || 'get')
     request.description = path.comment || ''
     request['x-codegen-auth_required'] = path.auth_required || false
+    request['x-codegen-route_handler'] = path.route_handler || false
 
     const response = new Response();
 
