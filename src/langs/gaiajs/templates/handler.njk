@@ -1,17 +1,17 @@
 import { RouteableModule } from '17zy_egg-gaiajs';
 
-import {{request.name}}Request from '../net/request/{{request.name}}';
-import {{request.name}}Response from '../net/response/{{request.name}}';
+import {{request.name}}Request from '{{netPath}}/request/{{request.name}}';
+import {{request.name}}Response from '{{netPath}}/response/{{request.name}}';
 
 export default {
-  path: {{request.path}}
-  auth_required: {{request.auth_required}}
+  path: '{{path}}',
+  auth_required: {{request['x-codegen-auth_required'] or false}},
 
-  async function {{request.method}}(this: RouteableModule<{{request.name}}Request>, req: {{request.name}}Request): {{request.name}}Response {
+  async {{method}}(this: RouteableModule<{{request.name}}Request>, req: {{request.name}}Request): {{request.name}}Response {
     const { ctx } = this;
 
     // add your handler codes here
 
     return ctx.success(response, {{request.name}}Response);
-  }
+  },
 };
