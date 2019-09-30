@@ -27,7 +27,7 @@ utils.typeFor = function(schema: Schema) {
       return 'Array';
 
     case 'object':
-      return '{' + Object.keys(schema.properties).map(name => {return name+':'+this.typeFor(schema.properties[name]);}).join(',') + '}';
+      return '{ ' + Object.keys(schema.properties).map(name => {return name+': '+this.typeFor(schema.properties[name]);}).join(', ') + ' }';
 
     default:
       return schema.type;
