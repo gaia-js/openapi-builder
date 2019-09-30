@@ -58,8 +58,7 @@ function routeHandlerTemplate(): nunjucks.Template {
   return _routeHandlerTemplate;
 }
 
-export default async function(openApi: OpenAPI, outputPath: string): Promise<boolean> {
-
+export default async function(openApi: OpenAPI, outputPath: string, options = {force: true}): Promise<boolean> {
   const typesPath = path.resolve(outputPath, 'types');
   makedirp(typesPath);
 
@@ -107,9 +106,10 @@ export default async function(openApi: OpenAPI, outputPath: string): Promise<boo
             });
           });
 
-          if (!fs.existsSync(path.resolve(routerPath, `${pathItem}.ts`))) {
-            makedirp(path.dirname(path.resolve(routerPath, `${pathItem}.ts`)));
-            fs.writeFileSync(path.resolve(routerPath, `${pathItem}.ts`), routeHandlerTemplate().render({name: request.name, utils}));
+          if (options.force || !fs.existsSync(path.resolve(routerPath, `./${pathItem}.ts`))) {
+            makedirp(path.dirname(path.resolve(routerPath, `./${pathItem}.ts`)));
+            const netPath = '../'+path.relative(path.dirname(pathItem), '/net/');
+            fs.writeFileSync(path.resolve(routerPath, `./${pathItem}.ts`), routeHandlerTemplate().render({request, path: pathItem, method, netPath, utils}));
           }
         } catch (err) {
           console.error('render failed', err);
