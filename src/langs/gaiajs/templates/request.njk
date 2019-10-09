@@ -31,9 +31,8 @@ export default class {{request.name}}Request extends GaiaRequest {
     {%- for field in request.parameters %}
     this.{{field.name}} = {% if utils.typeFor(field.schema) == "number" -%}
       Number({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% else %}params{% endif %}.{{field.name}})
-      {%- elif field.schema.type == "" -%}
       {%- else -%}
-      params.{{ field.name }}
+      {% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% else %}params{% endif %}.{{field.name}}
       {%- endif %};
     {%- endfor %}
 
