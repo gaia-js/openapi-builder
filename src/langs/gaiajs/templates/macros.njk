@@ -12,7 +12,7 @@
 {%- endmacro %}
 
 {% macro arrayValue(valueName, field, root) -%}
-(await Promise.all(({{valueName}} || []).map(async (item) => ({{ value('item', field.items, false) }}))))
+(await Promise.all(({{valueName}} || []).map(async (item: any) => ({{ value('item', field.items, false) }}))))
 {%- endmacro %}
 
 {% macro value(valueName, field, root) -%}
