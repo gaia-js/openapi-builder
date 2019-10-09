@@ -6,13 +6,17 @@ namespace gapi {
   export interface Schema {
     type: string
     comment: string
-    required: boolean
     properties: {[name: string]: Schema}
     items: Schema
   }
 
   interface Response extends Schema {
     mimetype: string
+  }
+
+  export interface ParameterSchema extends Schema {
+    in: string
+    required: boolean
   }
 
   export interface Path {
@@ -24,7 +28,7 @@ namespace gapi {
     auth_required: boolean
     route_handler: boolean
     response: Response
-    parameters: {[name: string]: Schema}
+    parameters: {[name: string]: ParameterSchema}
   }
 
   export interface GapiDoc {
@@ -93,6 +97,7 @@ export default function readGapi(gapiFilePath: string): OpenAPI {
 
     path.parameters && Object.keys(path.parameters).forEach(name => {
       const parameter = new Parameter(name, path.parameters[name].type)
+      path.parameters[name].in && (parameter.in = path.parameters[name].in)
       parameter.required = path.parameters[name].required || false
       parameter.description = path.parameters[name].comment || ''
       request.addParameter(parameter)
