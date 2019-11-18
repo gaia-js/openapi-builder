@@ -67,7 +67,7 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
       const schema = openApi.components.schemas[name];
       fs.writeFileSync(path.resolve(typesPath, `${name}.ts`), schemaTemplate().render({name, schema, utils}));
     } catch (err) {
-      console.error('render types failed', err);
+      console.error('render types failed: ', err);
     }
   });
 
