@@ -32,7 +32,7 @@ utils.typeFor = function(schema: Schema) {
       }
 
     default:
-      return schema.type;
+      return schema.format || schema.type;
   }
 }
 
