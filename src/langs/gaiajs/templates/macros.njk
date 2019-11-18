@@ -21,7 +21,7 @@
 {{ arrayValue(valueName, field, root) }}
 {%- elif field.$ref -%}
 {{ refObjectValue(valueName, field, root) }}
-{%- elif field.type === 'object' -%}
+{%- elif field.type === 'object' and field.properties -%}
 {{ objectValue(valueName, field, root) }}
 {%- else -%}
 {{ simpleValue(valueName, field, root) }}
