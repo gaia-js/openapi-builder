@@ -17,7 +17,7 @@ export default {
     return refs.values();
   },
 
-  refTypesForSchemaObject(schema: SchemaObject) {
+  refTypesForSchemaObject(schema: SchemaObject): string[] {
     const refs = new Set<string>();
     if (!schema.properties) {
       return [];
@@ -31,9 +31,14 @@ export default {
       else if (properties[name].type === 'array' && properties[name].items && (properties[name].items as any).$ref) {
         refs.add(this.typeFor(properties[name].items as Schema));
       }
+      else if (properties[name].type === 'object' && properties[name].properties) {
+        for (const value of this.refTypesForSchemaObject(properties[name])) {
+          refs.add(value);
+        }
+      }
     });
 
-    return refs.values();
+    return new Array(...refs.values());
   },
 
   refTypesForResponse(response: Response) {
