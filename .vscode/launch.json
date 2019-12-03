@@ -18,7 +18,8 @@
       "-l",
       "openapi", "gaiajs", "wiki",
       // "-i", "./tests/omniverse.yaml",
-      "-i", "./tests/math-fighting.gapi.yaml", "-t", "gapi",
+      // "-i", "./tests/math-fighting.gapi.yaml", "-t", "gapi",
+      "-i", "../../zx/english-fighting/msggen/english-fighting.gapi.yaml", "-t", "gapi",
       "-o", "./tests/"
     ],
     "outFiles": [
