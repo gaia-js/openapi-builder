@@ -86,9 +86,11 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
       if (openApi.paths[pathItem][method] instanceof Request) {
         const request: Request = openApi.paths[pathItem][method];
         try {
-          fs.writeFileSync(path.resolve(requestPath, `${itemCount > 0?`${method}_`:''}${request.name}.ts`), requestTemplate().render({url: pathItem, request, utils}));
+          const fileName = `${request.name}.ts`; //`${itemCount > 0 ? `${method}_` : ''}${request.name}.ts`;
 
-          Object.keys(request.responses).forEach(statusCode => {
+          fs.writeFileSync(path.resolve(requestPath, fileName), requestTemplate().render({url: pathItem, request, utils}));
+
+          request.responses && Object.keys(request.responses).forEach(statusCode => {
             const responseContent = request.responses[statusCode].content;
 
             Object.keys(responseContent).forEach(mimeType => {
@@ -102,7 +104,7 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
               }
 
               const schema = responseContent[mimeType].schema;
-              fs.writeFileSync(path.resolve(responsePath, `${itemCount > 0?`${method}_`:''}${request.name}.ts`), responseTemplate().render({name: request.name, response: request.responses[statusCode], utils, schema}));
+              fs.writeFileSync(path.resolve(responsePath, fileName), responseTemplate().render({name: request.name, response: request.responses[statusCode], utils, schema}));
             });
           });
 

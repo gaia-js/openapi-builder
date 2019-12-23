@@ -3,6 +3,7 @@
  *
  */
 
+import { Context } from 'egg';
 import Schema from '17zy_egg-gaiajs/app/lib/schema';
 
 {% for refType in utils.refTypesForSchemaObject(schema) -%}
@@ -19,8 +20,8 @@ export default class {{name}} extends Schema {
   {{name}}: {{utils.typeFor(field)}};
 
   {% endfor -%}
-  constructor(data: any) {
-    super(data);
+  constructor(data: any, ctx: Context) {
+    super(data, ctx);
 
   }
 

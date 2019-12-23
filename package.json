@@ -27,7 +27,8 @@
     "string-width": "^4.1.0",
     "ts-node": "^8.3.0",
     "xml2js": "^0.4.19",
-    "yargs": "^11.1.0"
+    "yargs": "^11.1.0",
+    "yargs-parser": "^16.1.0"
   },
   "devDependencies": {
     "@types/core-js": "^0.9.46",
