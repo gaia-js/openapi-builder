@@ -109,10 +109,12 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
       request.addParameter(parameter)
     })
 
-    const schema = createSchema(path.response, doc["common-response"])
+    if (path.response) {
+      const schema = createSchema(path.response, doc["common-response"])
 
-    response.content.addSchema(schema, path.response.mimetype || 'application/json')
-    request.addResponse(response)
+      response.content.addSchema(schema, path.response.mimetype || 'application/json')
+      request.addResponse(response)
+    }
 
     openApi.paths.addRequest(path.url, request)
   })

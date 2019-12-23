@@ -3,6 +3,7 @@
  *
  */
 
+import { Context } from 'egg';
 import GaiaResponse from '17zy_egg-gaiajs/app/lib/response';
 {% for refType in utils.refTypesForSchemaObject(schema) %}
 import {{refType}} from '../types/{{refType}}';
@@ -21,8 +22,8 @@ export default class {{name}}Response extends GaiaResponse {
   {{name}}: {{utils.typeFor(field)}};
 
   {% endfor -%}
-  constructor(data: any) {
-    super(data);
+  constructor(data: any, ctx: Context) {
+    super(data, ctx);
 
   }
 
