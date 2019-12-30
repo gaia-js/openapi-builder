@@ -22,7 +22,7 @@ export default class {{name}}Response extends GaiaResponse {
   {{name}}: {{utils.typeFor(field)}};
 
   {% endfor -%}
-  constructor(data: any, ctx: Context) {
+  constructor(data: any, ctx?: Context) {
     super(data, ctx);
 
   }
