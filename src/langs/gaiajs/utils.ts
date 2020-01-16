@@ -17,7 +17,7 @@ utils.typeFor = function(schema: Schema) {
 
     case 'array':
       if (schema.items) {
-        if (schema.items.type === 'object' || schema.items.type === 'array') {
+        if ((schema.items.type === 'object' && (schema.items.$ref || schema.items.properties)) || schema.items.type === 'array') {
           return `Array<${this.typeFor(schema.items)}>`;
         } else {
           return `${this.typeFor(schema.items)}[]`;
