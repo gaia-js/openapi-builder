@@ -3,6 +3,21 @@ import * as is from 'is-type-of';
 
 // import { ENAMETOOLONG } from "constants";
 
+function enumerable(value: boolean) {
+  return function (target: any, propertyKey: string, descriptor?: PropertyDescriptor) {
+    if (!descriptor) {
+      descriptor = Object.getOwnPropertyDescriptor(target, propertyKey) || {};
+    }
+
+    if (descriptor.enumerable != value) {
+      descriptor.enumerable = value;
+      descriptor.writable = true;
+
+      // Object.defineProperty(target, propertyKey, descriptor)
+    }
+  };
+}
+
 interface Loadable {
   load(source: any): void;
 }
@@ -201,6 +216,7 @@ export class Parameter implements Loadable {
 
 export class Request implements Loadable {
   public path: string;
+
   public method: string;
   public operationId: string;
   public ['x-codegen-request-body-name']: string
@@ -214,9 +230,10 @@ export class Request implements Loadable {
     this.tags = [];
     this.operationId = name;
 
-    for (let propertyKey of ['name', 'method', '_tags']) {
+    for (let propertyKey of ['name', 'method', '_tags', 'path']) {
       let descriptor = Object.getOwnPropertyDescriptor(this, propertyKey) || {};
       descriptor.enumerable = false;
+      descriptor.writable = true;
       Object.defineProperty(this, propertyKey, descriptor);
     }
   }
