@@ -1,14 +1,20 @@
 {
   "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "lib": [
+      "es2017",
+      "dom",
+      "esnext"
+    ],
+    "strict": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "target": "es5",
-    //"rootDir": "src/",
-    "lib": ["es6", "dom"],
+    "pretty": true,
     "outDir": "dist/",
     "allowJs": true,
-    "module": "commonjs"
+    "moduleResolution": "node"
   },
   "include": [
     "src/**/*"
