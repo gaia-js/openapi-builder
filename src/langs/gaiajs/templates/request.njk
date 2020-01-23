@@ -44,7 +44,7 @@ export default class {{request.name}}Request extends GaiaRequest {
 
     const rule = {
       {%- for field in request.parameters %}
-      {{field.name}}: { type: '{{utils.typeFor(field.schema)}}', required: {{field.required}} },
+      {{field.name}}: { type: '{{utils.primitiveType(field.schema)}}', required: {{field.required}} },
       {%- endfor %}
     };
     ctx.validate(rule, this);

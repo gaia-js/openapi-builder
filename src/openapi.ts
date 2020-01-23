@@ -30,6 +30,10 @@ function loadArray<T extends Loadable>(target: any, source: any[], clz: { new():
   });
 }
 
+function isBasicType(type: string) {
+  return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "any"].indexOf(type) >= 0;
+}
+
 export class Server implements Loadable {
   public url: string;
   public description: string;
@@ -101,7 +105,7 @@ export class Schema implements Loadable {
         this['additionalProperties'] = new Schema(matched[2])
       }
       else {
-        if (this.isBasicType(schemaType)) {
+        if (isBasicType(schemaType)) {
           this['type'] = this.standardBasicType(schemaType);
           if (["array", "object", "any"].indexOf(schemaType) < 0) {
             this['format'] = schemaType;
@@ -116,8 +120,8 @@ export class Schema implements Loadable {
     }
   }
 
-  private isBasicType(type: string) {
-    return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "any"].indexOf(type) >= 0;
+  public isBasicType() {
+    return isBasicType(this.type);
   }
 
   private standardBasicType(type: string) {
