@@ -187,7 +187,7 @@ export class Parameter implements Loadable {
   public description: string;
 
   constructor(name?: string, schemaType?: string) {
-    this.in = 'query';
+    this.in = null;
     if (name) {
       this.name = name;
     }
@@ -265,6 +265,10 @@ export class Request implements Loadable {
   public addParameter(parameter: Parameter) {
     if (!this.parameters) {
       this.parameters = [];
+    }
+
+    if (!parameter.in) {
+      parameter.in = this.method.toUpperCase() === 'POST' ? 'body' : 'query';
     }
 
     this.parameters.push(parameter);
