@@ -107,7 +107,7 @@ export class Schema implements Loadable {
       else {
         if (isBasicType(schemaType)) {
           this['type'] = this.standardBasicType(schemaType);
-          if (["array", "object", "any"].indexOf(schemaType) < 0) {
+          if (["array", "object", "any"].indexOf(schemaType) >= 0) {
             this['format'] = schemaType;
           }
         }
@@ -268,7 +268,7 @@ export class Request implements Loadable {
     }
 
     if (!parameter.in) {
-      parameter.in = this.method.toUpperCase() === 'POST' ? 'body' : 'query';
+      parameter.in = ['POST', 'PUT'].indexOf(this.method.toUpperCase()) >= 0 ? 'body' : 'query';
     }
 
     this.parameters.push(parameter);
