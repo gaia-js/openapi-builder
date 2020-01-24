@@ -28,7 +28,8 @@ export default class {{name}}Response extends GaiaResponse {
   }
 
   async dump(): Promise<any> {
-    {% from "./macros.njk" import assignValue, value with context -%}
+    {% from "./macros.njk" import assignValue, value, prepareValue with context -%}
+    {{ prepareValue('this', schema, true) }}
     return {{ value('this', schema, true) }};
   }
 }

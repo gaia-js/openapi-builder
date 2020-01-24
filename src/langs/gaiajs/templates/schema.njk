@@ -23,10 +23,17 @@ export default class {{name}} extends Schema {
   constructor(data: any, ctx?: Context) {
     super(data, ctx);
 
+    {% for name, field in schema.properties -%}
+      Object.defineProperty(this, '{{name}}', {
+        enumerable: true,
+        value: data.{{name}},
+      });
+    {% endfor -%}
   }
 
-  async dump(): Promise<any> {
-    {% from "./macros.njk" import assignValue, value with context -%}
+  async dump() {
+    {% from "./macros.njk" import assignValue, value, prepareValue with context -%}
+    {{ prepareValue('this', schema, true) }}
     return {{ value('this', schema, true) }};
   }
 }

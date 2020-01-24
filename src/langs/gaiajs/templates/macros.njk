@@ -1,34 +1,73 @@
-{% macro simpleValue(valueName, field, root) -%}
+{% macro prepareSimpleValue(valueName, field, root, propertyName) -%}
+const {{valueName}}
+{%- endmacro %}
+
+{% macro simpleValue(valueName, field, root, propertyName) -%}
 {{valueName}}
 {%- endmacro %}
 
-{% macro refObjectValue(valueName, field, root) -%}
-{{valueName}} && (await (new {{utils.typeFor(field)}}({{valueName}}, this.ctx)).dump())
+{% macro prepareRefObjectValue(valueName, field, root, propertyName) -%}
+const {{valueName}} = await (new {{utils.typeFor(field)}}({{valueName}}, this.ctx)).toJSON();
 {%- endmacro %}
 
-{% macro objectValue(valueName, field, root) -%}
+{%- macro refObjectValue(valueName, field, root, propertyName) -%}
+await ({{ valueName }}).toJSON()
+{%- endmacro -%}
+
+{%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
+{%- if root -%}
+{%- for propertyName, propertySchema in field.properties -%}
+const {{ propertyName }} = {{ value('await '+valueName+'.'+propertyName, propertySchema, false, propertyName) }};
+{%- endfor -%}
+{%- else -%}
+{%- endif -%}
+{% endmacro -%}
+
+{% macro objectValue(valueName, field, root, propertyName) -%}
+{% if root -%}
 { {% for propertyName, propertySchema in field.properties -%}
-  {{propertyName}}: {{valueName}} && {{ value('(await '+valueName+'.getField(\''+propertyName+'\'))' if root else (valueName+'.'+propertyName) , propertySchema, false) }}, {% endfor %}}
+  {{ propertyName }}, {% endfor %}}
+{%- else -%}
+  (await (async ({{ propertyName }}) => {
+    {{- prepareValue(propertyName, field, true) -}}
+    return {{ value(propertyName, field, true) -}};})({{ valueName }}))
+{%- endif -%}
 {%- endmacro %}
 
-{% macro arrayValue(valueName, field, root) -%}
-(await Promise.all(({{valueName}} || []).map(async (item: any) => ({{ value('item', field.items, false) }}))))
+{% macro prepareArrayValue(valueName, field, root, propertyName) -%}
 {%- endmacro %}
 
-{% macro value(valueName, field, root) -%}
+{% macro arrayValue(valueName, field, root, propertyName) -%}
+(await Promise.all(({{valueName}} || []).map(async (item: any) => ({{ value('item', field.items, false, propertyName) }}))))
+{%- endmacro %}
+
+{%- macro value(valueName, field, root, propertyName) -%}
 
 {%- if field.type === 'array' -%}
-{{ arrayValue(valueName, field, root) }}
+{{ arrayValue(valueName, field, root, propertyName) }}
 {%- elif field.$ref -%}
-{{ refObjectValue(valueName, field, root) }}
+{{ refObjectValue(valueName, field, root, propertyName) }}
 {%- elif field.type === 'object' and field.properties -%}
-{{ objectValue(valueName, field, root) }}
+{{ objectValue(valueName, field, root, propertyName) }}
 {%- else -%}
-{{ simpleValue(valueName, field, root) }}
+{{ simpleValue(valueName, field, root, propertyName) }}
 {%- endif -%}
 
-{%- endmacro %}
+{%- endmacro -%}
 
 {% macro assignValue(resultName, valueName, field) %}
 {{resultName}} = {{ value(valueName, field) }};
+{% endmacro %}
+
+{% macro prepareValue(valueName, field, root) -%}
+{%- if field.type === 'array' -%}
+{{ prepareArrayValue(valueName, field, root) }}
+{%- elif field.$ref -%}
+{{ prepareRefObjectValue(valueName, field, root) }}
+{%- elif field.type === 'object' and field.properties -%}
+{{ prepareObjectValue(valueName, field, root) }}
+{%- else -%}
+{{ prepareSimpleValue(valueName, field, root) }}
+{%- endif -%}
+
 {% endmacro %}
