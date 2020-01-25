@@ -268,7 +268,7 @@ export class Request implements Loadable {
     }
 
     if (!parameter.in) {
-      parameter.in = ['GET', 'OPTIONS'].indexOf(this.method.toUpperCase()) >= 0 ? 'query' : 'body';
+      parameter.in = ['PUT', 'POST', 'PATCH'].indexOf(this.method.toUpperCase()) >= 0 ? 'body' : 'query';
     }
 
     this.parameters.push(parameter);
