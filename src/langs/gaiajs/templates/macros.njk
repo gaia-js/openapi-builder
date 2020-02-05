@@ -15,9 +15,7 @@ await (new {{utils.typeFor(field)}}({{ valueName }}, this.ctx)).toJSON()
 
 {%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
 {%- if root -%}
-{%- for propertyName, propertySchema in field.properties -%}
-const {{ propertyName }} = {{ value('await '+valueName+'.'+propertyName, propertySchema, false, propertyName) }};
-{%- endfor -%}
+{%- for propertyName, propertySchema in field.properties -%}const {{ propertyName }} = {{ value('await '+valueName+'.'+propertyName, propertySchema, false, propertyName) }}; {% endfor -%}
 {%- else -%}
 {%- endif -%}
 {% endmacro -%}
