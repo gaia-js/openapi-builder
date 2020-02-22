@@ -10,7 +10,7 @@ const {{valueName}} = await (new {{utils.typeFor(field)}}({{valueName}}, this.ct
 {%- endmacro %}
 
 {%- macro refObjectValue(valueName, field, root, propertyName) -%}
-await (new {{utils.typeFor(field)}}({{ valueName }}, this.ctx)).toJSON()
+(({{ valueName }}) && (await (new {{utils.typeFor(field)}}({{ valueName }}, this.ctx)).toJSON()))
 {%- endmacro -%}
 
 {%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
