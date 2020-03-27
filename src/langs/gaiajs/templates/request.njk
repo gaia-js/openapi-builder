@@ -47,7 +47,11 @@ export default class {{request.name}}Request extends GaiaRequest {
       {{field.name}}: { type: '{{utils.primitiveType(field.schema)}}', required: {{field.required}} },
       {%- endfor %}
     };
-    ctx.validate(rule, this);
+    try {
+      ctx.validate(rule, this);
+    } catch (err) {
+      ctx.service.error.throwRequestValidateError(err);
+    }
     {%- endif %}
   }
 }
