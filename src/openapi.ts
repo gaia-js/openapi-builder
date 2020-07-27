@@ -159,9 +159,15 @@ export class Schema implements Loadable {
   load(source: any) {
     this.setType(source.type);
 
-    ['description', 'additionalProperties', '$ref', 'items', 'format'].forEach(name => {
+    ['description', '$ref', 'items', 'format'].forEach(name => {
       typeof source[name] !== 'undefined' && (this[name] = source[name]);
     });
+
+    if (source.additionalProperties) {
+      const schema = new Schema(source.additionalProperties.type || 'object');
+      schema.load(source.additionalProperties);
+      this.additionalProperties = schema;
+    }
 
     source.properties && Object.keys(source.properties).forEach(name => {
       if (!source.properties[name].type) {

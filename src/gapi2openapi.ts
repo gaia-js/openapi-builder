@@ -103,7 +103,11 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
 
     path.parameters && Object.keys(path.parameters).forEach(name => {
       const parameter = new Parameter(name, path.parameters[name].type)
-      path.parameters[name].in && (parameter.in = path.parameters[name].in)
+      path.parameters[ name ].in && (parameter.in = path.parameters[ name ].in)
+      if (parameter.schema) {
+        parameter.schema.load(path.parameters[ name ])
+      }
+
       parameter.required = path.parameters[name].required || false
       parameter.description = path.parameters[name].comment || ''
       request.addParameter(parameter)
