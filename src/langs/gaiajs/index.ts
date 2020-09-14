@@ -62,10 +62,10 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
   const typesPath = path.resolve(outputPath, 'types');
   makedirp(typesPath);
 
-  Object.keys(openApi.components.schemas).forEach(name => {
+  Object.keys(openApi.components && openApi.components.schemas || []).forEach(name => {
     try {
-      const schema = openApi.components.schemas[name];
-      fs.writeFileSync(path.resolve(typesPath, `${name}.ts`), schemaTemplate().render({name, schema, utils}));
+      const schema = openApi.components.schemas[ name ];
+      fs.writeFileSync(path.resolve(typesPath, `${name}.ts`), schemaTemplate().render({ name, schema, utils }));
     } catch (err) {
       console.error('render types failed: ', err);
     }
@@ -80,7 +80,7 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
   const routerPath = path.resolve(outputPath, '../routers');
   makedirp(routerPath);
 
-  Object.keys(openApi.paths).forEach(pathItem => {
+  Object.keys(openApi.paths || []).forEach(pathItem => {
     let itemCount = 0;
     openApi.paths[pathItem] && Object.keys(openApi.paths[pathItem]).forEach(method => {
       if (openApi.paths[pathItem][method] instanceof Request) {
