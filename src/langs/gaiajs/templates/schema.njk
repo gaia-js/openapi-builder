@@ -30,7 +30,7 @@ export default class {{name}} extends Schema {
     {%- endfor %}
   }
 
-  async toJSON() {
+  async dump() {
     {% from "./macros.njk" import assignValue, value, prepareValue with context -%}
     {{ prepareValue('this', schema, true) }}
     return {{ value('this', schema, true) }};
