@@ -3,6 +3,22 @@ import * as path from 'path';
 import { Request, Response, Schema, SchemaObject } from "../openapi";
 
 export default {
+  allTypes(request: Request) {
+    const types = new Set<string>();
+    request.parameters && request.parameters.forEach(parameter => {
+      if (parameter.schema.$ref) {
+        types.add(this.typeFor(parameter.schema));
+      }
+      else if (parameter.schema.type === 'array' && parameter.schema.items && parameter.schema.items.$ref) {
+        types.add(this.typeFor(parameter.schema.items));
+      } else {
+        types.add(this.typeFor(parameter.schema));
+      }
+    });
+
+    return types.values();
+  },
+
   refTypes(request: Request) {
     const refs = new Set<string>();
     request.parameters && request.parameters.forEach(parameter => {
