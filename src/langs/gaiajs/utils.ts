@@ -29,7 +29,7 @@ Object.assign(utils, {
 
       case 'object':
         if (schema.properties) {
-          return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join(', ') + ' }';
+          return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join('; ') + ' }';
         }
 
       default:
