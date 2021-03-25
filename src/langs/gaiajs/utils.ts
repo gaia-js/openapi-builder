@@ -32,6 +32,9 @@ Object.assign(utils, {
           return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join('; ') + ' }';
         }
 
+      case 'string':
+        return 'string';
+
       default:
         return schema.format || schema.type;
     }
