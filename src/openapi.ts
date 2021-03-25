@@ -82,6 +82,7 @@ export class Schema implements Loadable {
   $ref?: string;
   items?: Schema;
   format?: string;
+  example?: string;
   ['x-object-map']?: { [name: string]: Schema };
 
   constructor(schemaType: string) {
