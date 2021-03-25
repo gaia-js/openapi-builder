@@ -16,6 +16,9 @@ Object.assign(utils, {
       case 'double':
         return 'number';
 
+      case 'string':
+        return 'string';
+
       case 'array':
         if (schema.items) {
           if ((schema.items.type === 'object' && (schema.items.$ref || schema.items.properties)) || schema.items.type === 'array') {
@@ -31,9 +34,6 @@ Object.assign(utils, {
         if (schema.properties) {
           return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join('; ') + ' }';
         }
-
-      case 'string':
-        return 'string';
 
       default:
         return schema.format || schema.type;
