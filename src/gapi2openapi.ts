@@ -7,6 +7,8 @@ namespace gapi {
   export interface Schema {
     type: string
     comment: string
+    format: string
+    example: string
     properties: { [name: string]: Schema }
     items: Schema
   }
@@ -25,6 +27,7 @@ namespace gapi {
     url: string
     tags: string[]
     comment: string
+    summary: string
     method: string
     auth_required: boolean
     route_handler: boolean
@@ -47,6 +50,8 @@ namespace gapi {
 function createSchema(gapiSchema: gapi.Schema, commonSchema?: any): Schema {
   const schema = new Schema(gapiSchema.type)
   schema.description = gapiSchema.comment || ''
+  if (gapiSchema.hasOwnProperty('format')) { schema.format = gapiSchema.format }
+  if (gapiSchema.hasOwnProperty('example')) { schema.example = gapiSchema.example }
 
   if (gapiSchema.type === 'array') {
     schema.items = createSchema(gapiSchema.items)
@@ -95,6 +100,7 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
   doc.paths && doc.paths.forEach(path => {
     const request = new Request(path.name, path.method || 'get')
     request.description = path.comment || ''
+    if (path.hasOwnProperty('summary')) { request.summary = path.summary }
     path.tags && request.addTag(path.tags)
     request['x-codegen-auth_required'] = path.auth_required || false
     request['x-codegen-route_handler'] = path.route_handler || false
