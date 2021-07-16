@@ -31,7 +31,7 @@ function loadArray<T extends Loadable>(target: any, source: any[], clz: { new():
 }
 
 function isBasicType(type: string) {
-  return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "any"].indexOf(type) >= 0;
+  return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "map", "any"].indexOf(type) >= 0;
 }
 
 export class Server implements Loadable {
@@ -83,6 +83,7 @@ export class Schema implements Loadable {
   items?: Schema;
   format?: string;
   example?: string;
+  validator?: string;
   ['x-object-map']?: { [name: string]: Schema };
 
   constructor(schemaType: string) {
@@ -104,8 +105,9 @@ export class Schema implements Loadable {
 
         this['description'] = schemaType;
         this['additionalProperties'] = new Schema(matched[2])
-      }
-      else {
+      } else if (schemaType === 'map') {
+        this['type'] = 'object';
+      } else {
         if (isBasicType(schemaType)) {
           this['type'] = this.standardBasicType(schemaType);
           if (["array", "object", "any"].indexOf(schemaType) >= 0) {

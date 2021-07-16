@@ -30,6 +30,9 @@ Object.assign(utils, {
 
         return 'Array';
 
+      case 'map':
+        return `Map<string, ${this.typeFor(schema.additionalProperties)}>`;
+
       case 'object':
         if (schema.properties) {
           return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join('; ') + ' }';
@@ -41,6 +44,7 @@ Object.assign(utils, {
     }
   },
 
+  // 在validator中声明的类型
   primitiveType(schema: Schema) {
     if (['object', 'array'].indexOf(schema.type) >= 0) {
       return schema.type;
@@ -48,6 +52,10 @@ Object.assign(utils, {
 
     return this.typeFor(schema);
   }
+
+  // validatorType(schema: Schema) {
+  //   return schema
+  // }
 });
 
 export default utils;
