@@ -7,7 +7,7 @@ import { Context } from 'egg';
 import Schema from '17zy_egg-gaiajs/app/lib/schema';
 
 {% for refType in utils.refTypesForSchemaObject(schema) -%}
-import {{refType}} from '../types/{{refType}}';
+{% if refType !== name %}import {{refType}} from '../types/{{refType}}';{% endif %}
 {% endfor -%}
 export default class {{name}} extends Schema {
   {% for name, field in schema.properties -%}
