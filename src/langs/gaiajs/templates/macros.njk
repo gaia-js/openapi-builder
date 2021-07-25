@@ -15,9 +15,19 @@ const {{valueName}} = await (new {{utils.typeFor(field)}}({{valueName}}, this.ct
 
 {%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
 {%- if root -%}
+const [
 {%- for propertyName, propertySchema in field.properties -%}
-const {{ propertyName }} = {{ value('await '+valueName+'.'+propertyName, propertySchema, false, propertyName) }};
+{{ propertyName }},
 {%- endfor -%}
+] = await Promise.all([
+{%- for propertyName, propertySchema in field.properties -%}
+{{ value(valueName+'.'+propertyName, propertySchema, false, propertyName) }},
+{%- endfor -%}
+]) as [
+  {%- for propertyName, propertySchema in field.properties -%}
+  {{utils.typeFor(propertySchema)}},
+  {%- endfor -%}
+];
 {%- else -%}
 {%- endif -%}
 {% endmacro -%}
