@@ -100,11 +100,17 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
   doc.paths && doc.paths.forEach(path => {
     const request = new Request(path.name, path.method || 'get')
     request.description = path.comment || ''
-    if (path.hasOwnProperty('summary')) { request.summary = path.summary }
-    path.tags && request.addTag(path.tags)
-    request['x-codegen-auth_required'] = path.auth_required || false
+    if (path.hasOwnProperty('summary')) {
+      request.summary = path.summary
+    }
 
-    if (path.route_handler) {
+    path.tags && request.addTag(path.tags)
+
+    if (path.auth_required !== undefined) {
+      request['x-codegen-auth_required'] = path.auth_required || false
+    }
+
+    if (path.route_handler !== undefined) {
       request['x-codegen-route_handler'] = path.route_handler || false
     }
 
