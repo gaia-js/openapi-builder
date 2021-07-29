@@ -103,7 +103,10 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
     if (path.hasOwnProperty('summary')) { request.summary = path.summary }
     path.tags && request.addTag(path.tags)
     request['x-codegen-auth_required'] = path.auth_required || false
-    request['x-codegen-route_handler'] = path.route_handler || false
+
+    if (path.route_handler) {
+      request['x-codegen-route_handler'] = path.route_handler || false
+    }
 
     const response = new Response();
 

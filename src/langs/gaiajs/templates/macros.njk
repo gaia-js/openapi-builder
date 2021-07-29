@@ -6,11 +6,11 @@
 {%- endmacro %}
 
 {% macro prepareRefObjectValue(valueName, field, root, propertyName) -%}
-const {{valueName}} = await (new {{utils.typeFor(field)}}({{valueName}}, this.ctx)).dump();
+const {{valueName}} = await (new {{utils.typeFor(field)}}(await {{valueName}}, this.ctx)).dump();
 {%- endmacro %}
 
 {%- macro refObjectValue(valueName, field, root, propertyName) -%}
-(({{ valueName }}) && (await (new {{utils.typeFor(field)}}({{ valueName }}, this.ctx)).dump()))
+(({{ valueName }}) && (await (new {{utils.typeFor(field)}}(await {{ valueName }}, this.ctx)).dump()))
 {%- endmacro -%}
 
 {%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
@@ -47,7 +47,7 @@ const [
 {%- endmacro %}
 
 {% macro arrayValue(valueName, field, root, propertyName) -%}
-(await Promise.all(({{valueName}} || []).map(async (item: any) => ({{ value('item', field.items, false, propertyName) }}))))
+(await Promise.all((await {{valueName}} || []).map(async item => ({{ value('item', field.items, false, propertyName) }}))))
 {%- endmacro %}
 
 {%- macro value(valueName, field, root, propertyName) -%}
