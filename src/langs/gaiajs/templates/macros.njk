@@ -44,10 +44,10 @@ const [
   {%- if field.additionalProperties -%}
     ...(await (async() => {
       const result = {};
-      for (const key of Object.keys({{valueName}})) {
-        {% if field.properties -%} if (!{{Object.keys(field.properties)}}.includes(key)) { {%- endif %}
+      for (const key of ({{valueName}} instanceof Map ? {{valueName}}.keys() : Object.keys({{valueName}}))) {
+        {% if field.properties -%} if (!{{Object.keys(field.properties)}}.includes(key)) { {%- endif -%}
         result[key] = {{ value(valueName+'[key]', field.additionalProperties, false) }};
-        {% if field.properties %}} {%- endif %}
+        {%- if field.properties %}} {%- endif %}
       };
       return result;
     })()),
