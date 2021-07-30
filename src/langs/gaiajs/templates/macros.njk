@@ -13,7 +13,7 @@ const {{valueName}} = await (new {{utils.typeFor(field)}}(await {{valueName}}, t
 (({{ valueName }}) && (await (new {{utils.typeFor(field)}}(await {{ valueName }}, this.ctx)).dump()))
 {%- endmacro -%}
 
-{%- macro prepareObjectValue(valueName, field, root, propertyName) -%}
+{%- macro prepareObjectValue(valueName, field, root) -%}
 {%- if root -%}
 const [
 {%- for propertyName, propertySchema in field.properties -%}
@@ -32,10 +32,27 @@ const [
 {%- endif -%}
 {% endmacro -%}
 
+{%- macro prepareMapValue(valueName, field, root, schema, ignoreProperties) %}
+{% endmacro -%}
+
 {% macro objectValue(valueName, field, root, propertyName) -%}
 {% if root -%}
-{ {% for propertyName, propertySchema in field.properties -%}
-  {{ propertyName }}, {% endfor %}}
+{ {% if field.properties -%}
+    {% for propertyName, propertySchema in field.properties -%}
+  {{ propertyName }}, {% endfor %}
+  {%- endif -%}
+  {%- if field.additionalProperties -%}
+    ...(await (async() => {
+      const result = {};
+      for (const key of Object.keys({{valueName}})) {
+        {% if field.properties -%} if (!{{Object.keys(field.properties)}}.includes(key)) { {%- endif %}
+        result[key] = {{ value(valueName+'[key]', field.additionalProperties, false) }};
+        {% if field.properties %}} {%- endif %}
+      };
+      return result;
+    })()),
+  {%- endif -%}
+}
 {%- else -%}
   ({{ valueName }} && (await (async ({{ propertyName }}) => {
     {{- prepareValue(propertyName, field, true) -}}
@@ -56,7 +73,7 @@ const [
 {{ arrayValue(valueName, field, root, propertyName) }}
 {%- elif field.$ref -%}
 {{ refObjectValue(valueName, field, root, propertyName) }}
-{%- elif field.type === 'object' and field.properties -%}
+{%- elif field.type === 'object' -%}
 {{ objectValue(valueName, field, root, propertyName) }}
 {%- else -%}
 {{ simpleValue(valueName, field, root, propertyName) }}
@@ -73,8 +90,13 @@ const [
 {{ prepareArrayValue(valueName, field, root) }}
 {%- elif field.$ref -%}
 {{ prepareRefObjectValue(valueName, field, root) }}
-{%- elif field.type === 'object' and field.properties -%}
-{{ prepareObjectValue(valueName, field, root) }}
+{%- elif field.type === 'object' -%}
+  {%- if field.properties -%}
+  {{ prepareObjectValue(valueName, field, root) }}
+  {%- endif -%}
+  {%- if field.additionalProperties -%}
+  {{ prepareMapValue(valueName, field, root, field.additionalProperties, field.properties) }}
+  {%- endif -%}
 {%- else -%}
 {{ prepareSimpleValue(valueName, field, root) }}
 {%- endif -%}

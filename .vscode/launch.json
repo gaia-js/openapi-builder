@@ -8,7 +8,7 @@
     "request": "launch",
     "name": "Launch Program",
     //"runtimeArgs": ["-r", "ts-node/register"],
-    "program": "/usr/local/opt/node/bin/ts-node",
+    "program": "/usr/local/bin/ts-node",
     "cwd": "${workspaceRoot}",
     "args": [
       // "-P",
@@ -19,8 +19,8 @@
       "openapi", "gaiajs", "wiki",
       // "-i", "./tests/omniverse.yaml",
       // "-i", "./tests/math-fighting.gapi.yaml", "-t", "gapi",
-      "-i", "../../zx/english-fighting/msggen/english-fighting.gapi.yaml", "-t", "gapi",
-      "-o", "./tests/"
+      "-i", "${workspaceFolder}/tests/math-fighting.gapi.yaml", "-t", "gapi",
+      "-o", "${workspaceFolder}/tests/"
     ],
     "outFiles": [
       "${workspaceFolder}/**/*.js"
