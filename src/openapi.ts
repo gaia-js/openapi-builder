@@ -90,8 +90,8 @@ export class Schema implements Loadable {
     this.setType(schemaType || 'object');
   }
 
-  private setType(schemaType: string) {
-    if (schemaType && (schemaType === 'array' || schemaType.endsWith('[]'))) {
+  private setType(schemaType: string | object) {
+    if (schemaType && typeof schemaType === 'string' && (schemaType === 'array' || schemaType.endsWith('[]'))) {
       this['type'] = 'array';
 
       if (schemaType.endsWith('[]')) {
@@ -99,12 +99,12 @@ export class Schema implements Loadable {
       }
     }
     else if (schemaType) {
-      let matched = schemaType.match(/\{(\w+):(\w+)\}/)
-      if (matched) {
+      let matched;
+      if (typeof schemaType === 'object' || (matched = schemaType.match(/\{(\w+):(\w+)\}/))) {
         this['type'] = 'object';
 
-        this['description'] = schemaType;
-        this['additionalProperties'] = new Schema(matched[2])
+        this['description'] = typeof schemaType === 'string' ? schemaType : JSON.stringify(schemaType);
+        this['additionalProperties'] = new Schema(typeof schemaType === 'string' ? matched[2] : Object.values(schemaType)[0]);
       } else if (schemaType === 'map') {
         this['type'] = 'object';
       } else {
