@@ -44,7 +44,11 @@ export default class {{request.name}}Request extends GaiaRequest {
       ctx.service.error.throwRequestValidateError(new Error('{{field.name}} parameter required'));
     }{% endif %}
     {%- elif utils.typeFor(field.schema) === "boolean" -%}
-    this.{{field.name}} = toBoolean({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}});
+    if ({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.hasOwnProperty('{{field.name}}')) {
+      this.{{field.name}} = toBoolean({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}});
+    }{% if field.required === true %} else {
+      ctx.service.error.throwRequestValidateError(new Error('{{field.name}} parameter required'));
+    }{% endif %}
     {%- else -%}
     this.{{field.name}} = {% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}};
     {%- endif %}
