@@ -54,7 +54,7 @@ const [
   {%- endif -%}
 }
 {%- else -%}
-  ({{ valueName }} && (await (async ({{ propertyName }}) => {
+  ({{ valueName }} && (await (async {{ propertyName }} => {
     {{- prepareValue(propertyName, field, true) -}}
     return {{ value(propertyName, field, true) -}};})({{ valueName }})))
 {%- endif -%}
