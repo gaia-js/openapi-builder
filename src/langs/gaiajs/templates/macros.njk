@@ -37,22 +37,26 @@ const [
 
 {% macro objectValue(valueName, field, root, propertyName) -%}
 {% if root -%}
-{ {% if field.properties -%}
-    {% for propertyName, propertySchema in field.properties -%}
-  {{ propertyName }}, {% endfor %}
+  {%- if not field.properties and not field.additionalProperties -%}
+    {{simpleValue(valueName, field, root, schema)}}
+  {%- else -%}
+    { {% if field.properties -%}
+        {% for propertyName, propertySchema in field.properties -%}
+      {{ propertyName }}, {% endfor %}
+      {%- endif -%}
+      {%- if field.additionalProperties -%}
+        ...(await (async() => {
+          const result = {};
+          for (const [key,value] of ({{valueName}} instanceof Map ? {{valueName}}.entries() : Object.entries({{valueName}}))) {
+            {% if field.properties -%} if (!{{Object.keys(field.properties)}}.includes(key)) { {%- endif -%}
+            result[key] = {{ value('value', field.additionalProperties, false) }};
+            {%- if field.properties %}} {%- endif %}
+          };
+          return result;
+        })()),
+      {%- endif -%}
+    }
   {%- endif -%}
-  {%- if field.additionalProperties -%}
-    ...(await (async() => {
-      const result = {};
-      for (const [key,value] of ({{valueName}} instanceof Map ? {{valueName}}.entries() : Object.entries({{valueName}}))) {
-        {% if field.properties -%} if (!{{Object.keys(field.properties)}}.includes(key)) { {%- endif -%}
-        result[key] = {{ value('value', field.additionalProperties, false) }};
-        {%- if field.properties %}} {%- endif %}
-      };
-      return result;
-    })()),
-  {%- endif -%}
-}
 {%- else -%}
   ({{ valueName }} && (await (async {{ propertyName }} => {
     {{- prepareValue(propertyName, field, true) -}}
