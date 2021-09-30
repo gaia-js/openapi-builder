@@ -69,7 +69,6 @@ var argv = require('yargs')
 
 
 const openApi: OpenAPI = (argv.type === 'gapi'?readGapi:getOpenApi)(argv.input);
-
 gencode(argv.lang, openApi, argv.output).then(code => {
     console.info('done.');
     process.exit(code);

@@ -31,7 +31,7 @@ function loadArray<T extends Loadable>(target: any, source: any[], clz: { new():
 }
 
 function isBasicType(type: string) {
-  return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "map", "any"].indexOf(type) >= 0;
+  return ["string", "number", "int", "integer", "long", "float", "double", "boolean", "array", "object", "map", "any", "date", "dateTime", "datetime", "id", "email", "password", "url", "enum"].indexOf(type) >= 0;
 }
 
 export class Server implements Loadable {
@@ -85,6 +85,19 @@ export class Schema implements Loadable {
   example?: string;
   validator?: string;
   ['x-object-map']?: { [name: string]: Schema };
+
+  required?: boolean;
+  convertType?: string;
+  default?: string | number;
+  widelyUndefined?: boolean;
+  max?: number;
+  min?: number;
+  allowEmpty?: boolean;
+  trim?: boolean;
+  regExp: string
+  compare?: string;
+  values?: string[];
+  rule?: Schema;
 
   constructor(schemaType: string) {
     this.setType(schemaType || 'object');
@@ -161,8 +174,22 @@ export class Schema implements Loadable {
 
   load(source: any) {
     this.setType(source.type);
-
-    ['description', '$ref', 'items', 'format'].forEach(name => {
+    [
+      'description',
+      '$ref',
+      'format',
+      'required',
+      'convertType',
+      'default',
+      'widelyUndefined',
+      'max',
+      'min',
+      'allowEmpty',
+      'trim',
+      'compare',
+      'regExp',
+      'values',
+    ].forEach(name => {
       typeof source[name] !== 'undefined' && (this[name] = source[name]);
     });
 
@@ -185,6 +212,12 @@ export class Schema implements Loadable {
       schema.load(source.properties[name]);
       this.addProperty(name, schema);
     });
+
+    if (source.items && source.items.type) {
+      const schema = new Schema(source.items.type);
+      schema.load(source.items);
+      this.items = schema;
+    }
   }
 }
 
@@ -192,7 +225,6 @@ export class Parameter implements Loadable {
   public in: string;
   public name: string;
   public schema: Schema;
-  public required: boolean;
   public description: string;
 
   constructor(name?: string, schemaType?: string) {

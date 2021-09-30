@@ -6,12 +6,10 @@
 import { Context } from 'egg';
 import GaiaRequest from '17zy_egg-gaiajs/app/lib/request';
 {% for type in utils.allTypes(request) -%}
-{% if type === 'boolean' -%}
-import { toBoolean } from '17zy_egg-gaiajs/app/lib/utils';
-{%- endif -%}
 {% endfor %}{% for refType in utils.refTypes(request) -%}
 import {{refType}} from '../types/{{refType}}';
 {% endfor %}
+
 /**
  * path: {{url}}
  *{%- if request.summary %} {{request.summary}}{% endif %}
@@ -29,43 +27,48 @@ export default class {{request.name}}Request extends GaiaRequest {
    * @type {{utils.typeFor(field.schema)}}
    * @memberof {{request.name}}
    */
-  {{field.name}}{% if field.required === false %}?{% endif %}: {{utils.typeFor(field.schema)}};
+  {{field.name}}{%- if field.schema.required !== true -%}?{%- endif %}:
+    {%- if utils.typeFor(field.schema) === 'enum' %} {% for v in field.schema.values %}'{{ v }}'{% if loop.index !== loop.length %} | {%endif%}{% endfor %}
+    {%- else %} {{utils.typeFor(field.schema)}}{%- endif %};
 
   {% endfor -%}
 
+  // tslint:disable-next-line: max-func-body-length
   constructor(params: any, ctx: Context) {
     super(params, ctx);
 
-    {%- for field in request.parameters %}
-    {% if utils.typeFor(field.schema) === "number" -%}
+    const data: {
+      [K: string]: any;
+    } = {};
+
+    {% for field in request.parameters %}
     if ({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.hasOwnProperty('{{field.name}}')) {
-      this.{{field.name}} = Number({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}});
-    }{% if field.required === true %} else {
-      ctx.service.error.throwRequestValidateError(new Error('{{field.name}} parameter required'));
-    }{% endif %}
-    {%- elif utils.typeFor(field.schema) === "boolean" -%}
-    if ({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.hasOwnProperty('{{field.name}}')) {
-      this.{{field.name}} = toBoolean({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}});
-    }{% if field.required === true %} else {
-      ctx.service.error.throwRequestValidateError(new Error('{{field.name}} parameter required'));
-    }{% endif %}
-    {%- else -%}
-    this.{{field.name}} = {% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}};
-    {%- endif %}
-    {%- endfor %}
+      data.{{field.name}} = {% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}};
+    }
+    {% endfor %}
 
     {%- if request.parameters and request.parameters.length > 0 %}
-
-    const rule = {
-      {%- for field in request.parameters %}
-      {{field.name}}: { type: '{{utils.primitiveType(field.schema)}}', required: {{field.required}} },
-      {%- endfor %}
+    const rules = {
+        {%- from "./macros.njk" import buildRule with context %}{{ buildRule(request.parameters) }}
     };
+
     try {
-      ctx.validate(rule, this);
+      ctx.validate(rules, data);
     } catch (err) {
       ctx.service.error.throwRequestValidateError(err);
     }
+
+    Object.defineProperties(this, {
+      {%- for field in request.parameters %}
+      {{ field.name }}: { value: data.{{field.name}} },
+      {%- endfor %}
+    });
+
+    Object.defineProperty(this, 'toJSON', {
+      value: () => {
+        return data;
+      },
+    });
     {%- endif %}
   }
 }
