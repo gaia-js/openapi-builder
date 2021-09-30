@@ -87,7 +87,6 @@ export default async function(openApi: OpenAPI, outputPath: string, options = {f
         const request: Request = openApi.paths[pathItem][method];
         try {
           const fileName = `${request.name}.ts`; //`${itemCount > 0 ? `${method}_` : ''}${request.name}.ts`;
-
           fs.writeFileSync(path.resolve(requestPath, fileName), requestTemplate().render({url: pathItem, request, utils}));
 
           request.responses && Object.keys(request.responses).forEach(statusCode => {

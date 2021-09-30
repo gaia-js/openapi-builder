@@ -115,15 +115,13 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
     }
 
     const response = new Response();
-
     path.parameters && Object.keys(path.parameters).forEach(name => {
+
       const parameter = new Parameter(name, path.parameters[name].type)
       path.parameters[ name ].in && (parameter.in = path.parameters[ name ].in)
       if (parameter.schema) {
         parameter.schema.load(path.parameters[ name ])
       }
-
-      parameter.required = path.parameters[name].required || false
       parameter.description = path.parameters[name].comment || ''
       request.addParameter(parameter)
     })
@@ -150,6 +148,5 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
 export default function readGapi(gapiFilePath: string): OpenAPI {
   const openApi: OpenAPI = new OpenAPI();
   readGapiTo(gapiFilePath, openApi);
-
   return openApi;
 }

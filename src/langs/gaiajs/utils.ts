@@ -14,11 +14,20 @@ Object.assign(utils, {
       case 'long':
       case 'float':
       case 'double':
+      case 'id':
         return 'number';
 
       case 'string':
+      case 'email':
+      case 'password':
+      case 'url':
         return 'string';
 
+      case 'date':
+      case 'datetime':
+      case 'dateTime':
+        return 'Date';
+      
       case 'array':
         if (schema.items) {
           if ((schema.items.type === 'object' && (schema.items.$ref || schema.items.properties)) || schema.items.type === 'array') {
@@ -35,7 +44,13 @@ Object.assign(utils, {
 
       case 'object':
         if (schema.properties) {
-          return '{ ' + Object.keys(schema.properties).map(name => { return name + ': ' + this.typeFor(schema.properties[name]); }).join('; ') + ' }';
+          return '{ ' + Object.keys(schema.properties).map(name => {
+            let type = this.typeFor(schema.properties[name]);
+            if (type === 'enum') {
+              type = schema.properties[name].values.map(v => {return `'${v}'`}).join(' | ');
+            }
+            return name + ': ' + type;
+          }).join('; ') + ' }';
         }
         return schema.format || schema.type;
 
@@ -46,12 +61,12 @@ Object.assign(utils, {
 
   // 在validator中声明的类型
   primitiveType(schema: Schema) {
-    if (['object', 'array'].indexOf(schema.type) >= 0) {
+    if (['object', 'array', 'date', 'dateTime', 'datetime', 'id', 'email', 'password', 'url', 'enum'].indexOf(schema.type) >= 0) {
       return schema.type;
     }
 
     return this.typeFor(schema);
-  }
+  },
 
   // validatorType(schema: Schema) {
   //   return schema
