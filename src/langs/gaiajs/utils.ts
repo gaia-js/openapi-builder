@@ -46,8 +46,8 @@ Object.assign(utils, {
         if (schema.properties) {
           return '{ ' + Object.keys(schema.properties).map(name => {
             let type = this.typeFor(schema.properties[name]);
-            if (type === 'enum') {
-              type = schema.properties[name].values.map(v => {return `'${v}'`}).join(' | ');
+            if (schema.properties[name].format === 'enum') {
+              type = schema.properties[name].enum.map(v => {return `'${v}'`}).join(' | ');
             }
             return name + ': ' + type;
           }).join('; ') + ' }';
