@@ -96,7 +96,7 @@ export class Schema implements Loadable {
   trim?: boolean;
   regExp: string
   compare?: string;
-  values?: string[];
+  enum?: string[];
   rule?: Schema;
 
   constructor(schemaType: string) {
@@ -123,7 +123,7 @@ export class Schema implements Loadable {
       } else {
         if (isBasicType(schemaType)) {
           this['type'] = this.standardBasicType(schemaType);
-          if (["array", "object", "any"].indexOf(schemaType) >= 0) {
+          if (["array", "object", "any", "enum", "date", "datetime", "dateTime", "id", "email", "password", "url"].indexOf(schemaType) >= 0) {
             this['format'] = schemaType;
           }
         }
@@ -142,7 +142,17 @@ export class Schema implements Loadable {
 
   private standardBasicType(type: string) {
     switch (type) {
+      case "string":
+      case "url":
+      case "password":
+      case "email":
+      case "enum":
+      case "date":
+      case "datetime":
+      case "dateTime":
+        return "string";
       case "int":
+      case "id":
         return "integer";
       case "long":
         return "integer";
@@ -188,7 +198,7 @@ export class Schema implements Loadable {
       'trim',
       'compare',
       'regExp',
-      'values',
+      'enum',
     ].forEach(name => {
       typeof source[name] !== 'undefined' && (this[name] = source[name]);
     });
@@ -225,6 +235,7 @@ export class Parameter implements Loadable {
   public in: string;
   public name: string;
   public schema: Schema;
+  public required: boolean;
   public description: string;
 
   constructor(name?: string, schemaType?: string) {
