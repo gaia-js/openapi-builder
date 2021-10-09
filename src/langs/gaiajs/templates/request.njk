@@ -28,7 +28,7 @@ export default class {{request.name}}Request extends GaiaRequest {
    * @memberof {{request.name}}
    */
   {{field.name}}{%- if field.schema.required !== true -%}?{%- endif %}:
-    {%- if utils.typeFor(field.schema) === 'enum' %} {% for v in field.schema.values %}'{{ v }}'{% if loop.index !== loop.length %} | {%endif%}{% endfor %}
+    {%- if field.schema.format === 'enum' %} {% for v in field.schema.enum %}'{{ v }}'{% if loop.index !== loop.length %} | {%endif%}{% endfor %}
     {%- else %} {{utils.typeFor(field.schema)}}{%- endif %};
 
   {% endfor -%}

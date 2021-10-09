@@ -113,17 +113,15 @@ const [
 {% endmacro %}
 
 {%- macro buildFieldRule(schema) %}{
-        type: '{{utils.primitiveType(schema)}}', required: {%- if schema.required %} {{schema.required}}{% else %} false{% endif %},
+        type: {% if schema.format in ['enum', 'url', 'password', 'id', 'email', 'date', 'datetime', 'dateTime'] %}'{{schema.format}}'{% else %}'{{utils.primitiveType(schema)}}'{% endif %}, required: {%- if schema.required %} {{schema.required}}{% else %} false{% endif %},
  {%- if schema.convertType !== undefined %} convertType: '{{schema.convertType}}',{%- endif %}
  {%- if schema.default !== undefined %} default: '{{schema.default}}',{%- endif %}
  {%- if schema.widelyUndefined !== undefined %} widelyUndefined: {{schema.widelyUndefined}},{% endif %}
  {%- if utils.primitiveType(schema) in ['number', 'string', 'array', 'password'] and schema.max !== undefined  %} max: {{schema.max}},{% endif %}
  {%- if utils.primitiveType(schema) in ['number', 'string', 'array', 'password'] and schema.min !== undefined  %} min: {{schema.min}},{% endif %}
- {%- if utils.primitiveType(schema) === 'string' %} {%- if schema.allowEmpty !== undefined %} allowEmpty: {{schema.allowEmpty}},{% endif %}
+ {%- if utils.primitiveType(schema) === 'string' %} {%- if schema.allowEmpty !== undefined %} allowEmpty: {{schema.allowEmpty}},{% endif %} {%- if schema.format === 'enum' and schema.enum.length > 0 %} values: [{% for v in schema.enum %}'{{v}}', {% endfor %}],{%- endif %}{% if schema.format === 'password' %}{%- if schema.compare !== undefined %} compare: '{{schema.compare}}',{%- endif %}{% endif %}
  {%- if schema.regExp !== undefined %} format: {{schema.regExp}},{% endif %}
  {%- if schema.trim !== undefined %} trim: {{schema.trim}},{% endif %}{%- endif %}
- {%- if utils.primitiveType(schema) === 'password' %} {%- if schema.compare !== undefined %} compare: '{{schema.compare}}',{%- endif %}{%- endif %}
- {%- if utils.primitiveType(schema) === 'enum' and schema.values.length > 0 %} values: [{% for v in schema.values %}'{{v}}', {% endfor %}],{%- endif %}
  {%- if utils.primitiveType(schema) === 'object' and schema.properties -%} rule: { {%- call buildProperties(schema.properties) %}{%- endcall -%} }, {%- endif -%}
  {%- if utils.primitiveType(schema) === 'array' and schema.items !== undefined %} {%- call buildItems(schema.items) %}{%- endcall %}{%- endif %} },
 {%- endmacro %}
@@ -131,53 +129,3 @@ const [
 {%- macro buildProperties(properties) %} {%- for name, schema in properties -%}{{name}}: {%- call buildFieldRule(schema) -%}{%- endcall -%}{%- endfor -%}{%- endmacro -%}
 
 {%- macro buildItems(items) %} itemType: '{{ items.type }}',{%- if utils.primitiveType(items) === 'array' %} rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- elif utils.primitiveType(items) === 'object' %} rule: { {%- call buildProperties(items.properties) %}{%- endcall %} }{% else %}rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- endif %}{%- endmacro %}
-
-{% macro buildFormat(parameters) %}
-  {% for field in parameters %}
-    {% call buildCommonFormat('data', field.name, field.schema) %}{% endcall %}
-  {% endfor %}
-{% endmacro %}
-
-{% macro buildCommonFormat(parentName, currentName, schema) %}
-  if ({{parentName}}.hasOwnProperty('{{ currentName }}')) {
-    {% set name = parentName + '.' + currentName %}
-    {% if utils.primitiveType(schema) in ['date', 'datetime', 'dateTime'] %}
-      {{ name }} = new Date({{ name }});
-    {% elif utils.primitiveType(schema) === 'object'  %}
-      {%- call buildObjectFormat(parentName, currentName, schema.properties) %}{% endcall %}
-    {% elif utils.primitiveType(schema) === 'array' and schema.items  %}
-      {% set j = "_"+name | replace("[", "_") | replace("]", "_") | replace(".", "_") %}
-      for (let {{j}} = 0; {{j}} < {{name}}.length; {{j}}++) {
-        {%- call buildArrayFormat(name, '[' + j + ']', schema.items, 0) %} {% endcall %}
-      }
-    {% endif %}
-  }
-{% endmacro %}
-
-{% macro buildObjectFormat(parentName, currentName, properties) %}
-  if ({{parentName}}.hasOwnProperty('{{currentName}}')) {
-    {% for name, schema in properties %}
-      {% if schema.type === 'object' and schema.properties %}
-        {% call buildObjectFormat(parentName + '.' + currentName, name, schema.properties) %}{% endcall %}
-      {% elif schema.type === 'array' and schema.items %}
-        {% call buildArrayFormat(parentName + '.' + currentName, name, schema.items) %}{% endcall %}
-      {% elif schema.type in ['date', 'datetime', 'dateTime'] %}
-        {{ parentName + '.' + currentName + '.' + name }} = new Date({{ parentName + '.' + currentName + '.' + name }});
-      {% endif %}
-    {% endfor %}
-  }
-{% endmacro %}
-
-{% macro buildArrayFormat(parentName, currentName, schema, isCheckProperty = 1) %}
-  {% if isCheckProperty === 1 %} if ({{ parentName }}.hasOwnProperty('{{ currentName }}')) { {% endif %}
-    {% if isCheckProperty === 1 %} {% set name = parentName + '.' + currentName %} {% else %} {% set name = parentName + currentName %} {% endif %}
-    {% set j = "_" + name | replace("[", "_") | replace("]", "_") | replace(".", "_") %}
-      {% if utils.primitiveType(schema) in ['date', 'datetime', 'dateTime'] %}
-        {{name}} = new Date({{name}});
-      {% elif utils.primitiveType(schema) === 'array' %}
-        for (let {{j}} = 0; {{j}} < {{name}}.length; {{j}}++) {
-          {%- call buildArrayFormat(name, '[' + j + ']', schema.items, 0) %}{%- endcall %}
-        }
-      {% endif %}
-  {% if isCheckProperty !== 0 %} } {% endif %}
-{% endmacro %}

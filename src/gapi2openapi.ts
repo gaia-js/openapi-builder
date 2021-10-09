@@ -122,6 +122,7 @@ function readGapiTo(gapiFilePath: string, openApi: OpenAPI): OpenAPI {
       if (parameter.schema) {
         parameter.schema.load(path.parameters[ name ])
       }
+      parameter.required = path.parameters[name].required || false
       parameter.description = path.parameters[name].comment || ''
       request.addParameter(parameter)
     })
