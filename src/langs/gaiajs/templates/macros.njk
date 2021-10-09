@@ -128,4 +128,4 @@ const [
 
 {%- macro buildProperties(properties) %} {%- for name, schema in properties -%}{{name}}: {%- call buildFieldRule(schema) -%}{%- endcall -%}{%- endfor -%}{%- endmacro -%}
 
-{%- macro buildItems(items) %} itemType: '{{ items.type }}',{%- if utils.primitiveType(items) === 'array' %} rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- elif utils.primitiveType(items) === 'object' %} rule: { {%- call buildProperties(items.properties) %}{%- endcall %} }{% else %}rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- endif %}{%- endmacro %}
+{%- macro buildItems(items) %} itemType: {% if items.format !== undefined %}'{{ items.format }}', {% else %}'{{ items.type }}', {% endif %}{%- if utils.primitiveType(items) === 'array' %} rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- elif utils.primitiveType(items) === 'object' %} rule: { {%- call buildProperties(items.properties) %}{%- endcall %} }{% else %}rule: {%- call buildFieldRule(items) %}{%- endcall %}{%- endif %}{%- endmacro %}
