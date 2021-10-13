@@ -2,7 +2,7 @@
 主要包含openapi文档生成（可以使用swagger工具查看）、接口代码生成（需要编写模版，目前主要支持gaia.js框架接口代码生成）
 
 # 安装
- npm install 17zy_protocol_builder -g
+ npm install @gaiajs/protocol_builder -g
 
 # 组件
 

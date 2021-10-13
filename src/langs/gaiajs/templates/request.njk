@@ -4,7 +4,7 @@
  */
 
 import { Context } from 'egg';
-import GaiaRequest from '17zy_egg-gaiajs/app/lib/request';
+import GaiaRequest from '@gaiajs/gaiajs/app/lib/request';
 {% for type in utils.allTypes(request) -%}
 {% endfor %}{% for refType in utils.refTypes(request) -%}
 import {{refType}} from '../types/{{refType}}';
