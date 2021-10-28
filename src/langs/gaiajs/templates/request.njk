@@ -6,6 +6,9 @@
 import { Context } from 'egg';
 import GaiaRequest from '@gaiajs/gaiajs/app/lib/request';
 {% for type in utils.allTypes(request) -%}
+{% if type === 'boolean' -%}
+import { toBoolean } from '17zy_egg-gaiajs/app/lib/utils';
+{%- endif -%}
 {% endfor %}{% for refType in utils.refTypes(request) -%}
 import {{refType}} from '../types/{{refType}}';
 {% endfor %}
@@ -43,9 +46,15 @@ export default class {{request.name}}Request extends GaiaRequest {
     } = {};
 
     {% for field in request.parameters %}
+
     if ({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.hasOwnProperty('{{field.name}}')) {
+      {% if utils.typeFor(field.schema) === 'boolean' %}
+      data.{{field.name}} = toBoolean({% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}});
+      {% else %}
       data.{{field.name}} = {% if field.in === 'query' %}ctx.query{% elif field.in === 'body' %}ctx.request.body{% elif field.in === 'path' %}ctx.params{% else %}params{% endif %}.{{field.name}};
+      {% endif %}
     }
+
     {% endfor %}
 
     const rules = {
